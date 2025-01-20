@@ -26,9 +26,11 @@ def get_dataset_statistics(csv_file_path: str):
 
 
 
-stats = get_dataset_statistics("/Users/rishi/MoodySound/dataset_creator/augmented.csv")
+stats = get_dataset_statistics("/Users/rishi/MoodySound/dataset_creator/base_moods.csv")
 print(stats)
 
+stats = get_dataset_statistics("/Users/rishi/MoodySound/dataset_creator/big_data_mood.csv")
+print(stats)
 
 
 
