@@ -1,0 +1,15 @@
+# Ignore Python virtual environments
+myenv/
+
+.DS_Store
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+
+
+# Ignore dataset
+acousticbrainz-highlevel-json-20220623
+dataset/
+*.csv
+
