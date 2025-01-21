@@ -26,14 +26,6 @@ def get_dataset_statistics(csv_file_path: str):
 
 
 
-stats = get_dataset_statistics("/Users/rishi/MoodySound/dataset_creator/base_moods.csv")
-print(stats)
-
-stats = get_dataset_statistics("/Users/rishi/MoodySound/dataset_creator/big_data_mood.csv")
-print(stats)
-
-stats = get_dataset_statistics("/Users/rishi/MoodySound2/dataset_creator/augmented.csv")
-print(stats)
 
 
 
@@ -50,5 +42,14 @@ mood =  {"danceability": 0.0758428892226954,
          "mood_party": 0.31666146070749207,
          "mood_relaxed": 0.021939055662141476,
          "mood_sad": 0.09875077584188718}
+
+stats = get_dataset_statistics("/Users/rishi/MoodySound/dataset_creator/base_moods.csv")
+print(stats)
+
+stats = get_dataset_statistics("/Users/rishi/MoodySound/dataset_creator/big_data_mood.csv")
+print(stats)
+
+stats = get_dataset_statistics("/Users/rishi/MoodySound2/dataset_creator/augmented.csv")
+print(stats)
 
 """

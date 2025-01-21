@@ -69,7 +69,7 @@ def slice_spectogram_in_intervals(y, sr=22050, min_duration=10, max_duration=30,
 
 
 
-
+"""
 #Search for the audio file
 audio_url = get_song_preview("Hello")
 print(audio_url)
@@ -79,7 +79,7 @@ spectrograms = get_spectrogram_data(audio_url)
 for s in spectrograms:
     print(s.shape)
 
-"""
+
 import sounddevice as sd
 
 sd.play(audio, samplerate=sr)
