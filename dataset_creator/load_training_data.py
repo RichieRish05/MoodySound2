@@ -75,70 +75,104 @@ def build_spectogram_data(row):
 
 
 
-def load_training_vectors(csv_path: Path, output_directory = None, start_index=0, num_rows=1000):
-    # Create a pandas data frame to iterate through the csv
-    df = pd.read_csv(csv_path, skiprows=range(1, start_index + 1), nrows=num_rows)
-    print(f"Processing rows {start_index} to {start_index + len(df)}")
+def load_training_vectors(csv_path: Path, output_directory = None, start_index=0, num_rows=None):
+    try:
+        # Create a pandas data frame to iterate through the csv
+        df = pd.read_csv(csv_path, skiprows=range(1, start_index + 1), nrows=num_rows)
+        total_rows = len(df)
+        print(f"Processing rows {start_index} to {start_index + total_rows}")
 
-    # Create a list to store metadata
-    metadata = []
-
-    # Iterate through the csv
-    for _, row in df.iterrows():
-        spectrograms = build_spectogram_data(row)
+        # Create a list to store metadata
+        metadata = []
         
-        if not spectrograms:
-            continue
-       
-        mood_vector = build_mood_vector(row)
-        cleaned_name = sanitize_song_name(row["title"])
+        # Track progress
+        processed_count = 0
+        error_count = 0
+
+        # Iterate through the csv
+        for _, row in df.iterrows():
+            try:
+                spectrograms = build_spectogram_data(row)
+                
+                if not spectrograms:
+                    print(f"Skipping {row['title']} - No audio preview found")
+                    error_count += 1
+                    continue
+                
+                mood_vector = build_mood_vector(row)
+                cleaned_name = sanitize_song_name(row["title"])
+                
+                for index, spectrogram in enumerate(spectrograms):
+                    # Create file names
+                    spectrogram_file = f'{cleaned_name}_{(index+1)*10}s_matrix.npy'
+                    target_file = f'{cleaned_name}_{(index+1)*10}s_target.npy'
+                    
+                    # Save the data and associated target to .npy files
+                    matrix_file_path = f'{output_directory}/spectograms/{spectrogram_file}'
+                    np.save(matrix_file_path, spectrogram)
+                    
+                    target_file_path = f'{output_directory}/targets/{target_file}'
+                    np.save(target_file_path, mood_vector)
+                    
+                    # Add to metadata
+                    metadata.append({
+                        'spectrogram_file': spectrogram_file,
+                        'target_file': target_file,
+                        'title': row["title"],
+                        'artist': row["artist"]
+                    })
+
+                processed_count += 1
+                
+                # Print progress every 10 songs
+                if processed_count % 10 == 0:
+                    print(f"Processed {processed_count}/{total_rows} songs. Errors: {error_count}")
+                    
+                    # Save metadata periodically
+                    save_metadata(metadata, output_directory)
+                    metadata = []  # Clear the metadata list after saving
+
+                # Introduce a delay to prevent overloading the API
+                time.sleep(1)
+
+            except Exception as e:
+                print(f"Error processing {row['title']}: {str(e)}")
+                error_count += 1
+                continue
+
+        # Save any remaining metadata
+        if metadata:
+            save_metadata(metadata, output_directory)
+
+        print(f"\nProcessing complete!")
+        print(f"Successfully processed: {processed_count}")
+        print(f"Errors encountered: {error_count}")
+
+    except Exception as e:
+        print(f"Fatal error occurred: {str(e)}")
+        raise
+
+def save_metadata(metadata, output_directory):
+    """Helper function to save metadata to CSV"""
+    if not metadata:
+        return
         
-        for index, spectrogram in enumerate(spectrograms):
-            # Create file names
-            spectrogram_file = f'{cleaned_name}_{(index+1)*10}s_matrix.npy'
-            target_file = f'{cleaned_name}_{(index+1)*10}s_target.npy'
-            
-            # Save the data and associated target to .npy files
-            matrix_file_path = f'{output_directory}/spectograms/{spectrogram_file}'
-            np.save(matrix_file_path, spectrogram)
-            print(f'Saved matrix to {matrix_file_path}')
-            
-            target_file_path = f'{output_directory}/targets/{target_file}'
-            np.save(target_file_path, mood_vector)
-            print(f'Saved mood vector to {target_file_path}')
-            
-            # Add to metadata
-            metadata.append({
-                'spectrogram_file': spectrogram_file,
-                'target_file': target_file,
-                'title': row["title"],
-                'artist': row["artist"]
-            })
-
-        # Introduce a delay to prevent overloading the API
-        time.sleep(1)  # Adjust the delay time as needed
-
-    # Create metadata DataFrame
     new_metadata_df = pd.DataFrame(metadata)
-    
-    # Check if metadata file exists
     metadata_path = f'{output_directory}/metadata.csv'
+    
     if Path(metadata_path).exists():
-        # Read existing metadata and append new data
         existing_metadata = pd.read_csv(metadata_path)
         combined_metadata = pd.concat([existing_metadata, new_metadata_df], ignore_index=True)
         combined_metadata.to_csv(metadata_path, index=False)
     else:
-        # If no existing metadata, save new metadata
         new_metadata_df.to_csv(metadata_path, index=False)
 
-
-
+# Example usage to process the entire CSV
 drive_name = "/Volumes/Drive/MoodySound/data"
 
 load_training_vectors(
     csv_path=Path("/Users/rishi/MoodySound/dataset_creator/augmented.csv"), 
     output_directory=Path(drive_name),
-    start_index=0,
-    num_rows=10
+    start_index=0,  # Start from the beginning
+    num_rows=None   # Process all rows
 )
