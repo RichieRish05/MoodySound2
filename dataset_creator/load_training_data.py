@@ -4,6 +4,7 @@ import numpy as np
 import time
 from song_preview import get_song_preview
 from spectrogram import get_spectrogram_data
+import os
 
 
 
@@ -124,8 +125,8 @@ def load_training_vectors(csv_path: Path, output_directory = None, start_index=0
 
                 processed_count += 1
                 
-                # Print progress every 10 songs
-                if processed_count % 10 == 0:
+                # Print progress every 100 songs
+                if processed_count % 100 == 0:
                     print(f"Processed {processed_count}/{total_rows} songs. Errors: {error_count}")
                     
                     # Save metadata periodically
@@ -167,12 +168,12 @@ def save_metadata(metadata, output_directory):
     else:
         new_metadata_df.to_csv(metadata_path, index=False)
 
-# Example usage to process the entire CSV
+# Path on seagate external hardrive
 drive_name = "/Volumes/Drive/MoodySound/data"
 
 load_training_vectors(
-    csv_path=Path("/Users/rishi/MoodySound/dataset_creator/augmented.csv"), 
+    csv_path=Path("/Users/rishi/MoodySound2/dataset_creator/augmented.csv"), 
     output_directory=Path(drive_name),
     start_index=0,  # Start from the beginning
-    num_rows=None   # Process all rows
+    num_rows=50000   # Process 50,0000 rows
 )
