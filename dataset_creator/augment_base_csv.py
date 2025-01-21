@@ -8,8 +8,8 @@ def augment_dataset(base_csv: Path, larger_csv: Path, number_of_songs_per_split:
     """
 
     # Pandas DataFrames
-    base_df = pd.read_csv(base_csv).round(20)
-    larger_df = pd.read_csv(larger_csv).round(20)
+    base_df = pd.read_csv(base_csv).round(20).drop_duplicates()
+    larger_df = pd.read_csv(larger_csv).round(20).drop_duplicates()
 
 
     # Metadata headers
@@ -36,7 +36,19 @@ def augment_dataset(base_csv: Path, larger_csv: Path, number_of_songs_per_split:
             
             # Get songs where this mood has the highest value among all moods
             songs_to_add = larger_df[larger_df[mood_features].idxmax(axis=1) == mood].copy()
-            songs_to_add = songs_to_add.sample(n=number_of_songs_to_add, replace=False)
+
+            # Check if the number of songs to add is greater than the number of songs available
+            available_songs = len(songs_to_add)
+
+            # If the number of songs to add is greater than the number of songs available, use replacement sampling
+            if available_songs < number_of_songs_to_add:
+                print(f'Warning: Only {available_songs} songs available for {mood}, using replacement sampling')
+                songs_to_add = songs_to_add.sample(n=number_of_songs_to_add, replace=True)
+            # If the number of songs to add is less than the number of songs available, use non-replacement sampling
+            else:
+                songs_to_add = songs_to_add.sample(n=number_of_songs_to_add, replace=False)
+            
+            # Add songs from base_df to the songs_to_add
             songs_from_base = base_df[base_df[mood_features].idxmax(axis=1) == mood].copy()
             songs_to_add = pd.concat([songs_from_base, songs_to_add], ignore_index=True)
         else:
@@ -53,16 +65,20 @@ def augment_dataset(base_csv: Path, larger_csv: Path, number_of_songs_per_split:
             augmented_df = songs_to_add
         else:
             augmented_df = pd.concat([augmented_df, songs_to_add], ignore_index=True)
+            augmented_df.drop_duplicates()
 
 
 
+
+    # Add a column representing the comprehensive mood
+    augmented_df['comprehensive_mood'] = augmented_df[mood_features].idxmax(axis=1)
     
 
 
 
 
     # Shuffle the augmented dataset
-    # augmented_df = augmented_df.sample(frac=1).reset_index(drop=True)
+    augmented_df = augmented_df.sample(frac=1).reset_index(drop=True)
 
     
 
@@ -74,5 +90,5 @@ def augment_dataset(base_csv: Path, larger_csv: Path, number_of_songs_per_split:
 
 
 # Example usage:
-#augment_dataset(Path("misc/base.csv"), Path("misc/larger.csv"), 15, Path("dataset_creator/augmented.csv"))
+augment_dataset(Path("dataset_creator/base_moods.csv"), Path("dataset_creator/big_data_mood.csv"), 40000, Path("dataset_creator/augmented.csv"))
 

@@ -68,7 +68,7 @@ def recursive_extract(directory_path: Path, writer: csv.DictWriter):
                 writer.writerow(data)
 
 
-def create_csv_file(directory_path: Path):
+def create_csv_file(directory_path: Path, csv_path="base.csv"):
     """
     Creates a csv file, extract all features from all json files within a directory recursively.
     and write it all to the csv file
@@ -85,7 +85,7 @@ def create_csv_file(directory_path: Path):
                "mood_relaxed",
                "mood_sad"]
     
-    with open("CHANGE HERE", mode='w', newline='') as file:
+    with open(csv_path, mode='w', newline='') as file:
         # Create a CSV DictWriter object
         writer = csv.DictWriter(file, fieldnames=headers)
 
@@ -98,6 +98,6 @@ def create_csv_file(directory_path: Path):
     
 
 # Work with this part of the data first
-directory_path = Path("/Users/rishi/MoodySound/dataset_creator/acousticbrainz-highlevel-json-20220623/highlevel")
+directory_path = Path("/Users/rishi/MoodySound/dataset_creator/acousticbrainz-highlevel-json-20220623/highlevel/00/0")
 create_csv_file(directory_path)
 

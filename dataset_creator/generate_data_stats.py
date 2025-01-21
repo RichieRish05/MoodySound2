@@ -14,7 +14,7 @@ def get_dataset_statistics(csv_file_path: str):
         "mood_sad"
     ]
 
-    df = pd.read_csv(csv_file_path).round(10)
+    df = pd.read_csv(csv_file_path).round(20).drop_duplicates()
     mood_counts = df[features].idxmax(axis=1).value_counts().to_dict()
 
 
@@ -31,6 +31,10 @@ print(stats)
 
 stats = get_dataset_statistics("/Users/rishi/MoodySound/dataset_creator/big_data_mood.csv")
 print(stats)
+
+stats = get_dataset_statistics("/Users/rishi/MoodySound2/dataset_creator/augmented.csv")
+print(stats)
+
 
 
 

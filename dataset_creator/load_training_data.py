@@ -38,6 +38,12 @@ def build_mood_vector(row):
         mood_vector.append(row[feature])
     
     mood_vector = np.array([mood_vector])
+
+    # Calculate the L2 norm (Euclidean norm) of the vector
+    norm = np.linalg.norm(mood_vector)
+
+    # Normalize mood vector
+    normalized_vector = mood_vector / norm
     
     return mood_vector
 
@@ -69,10 +75,13 @@ def build_spectogram_data(row):
 
 
 
-def load_training_vectors(csv_path: Path, output_directory = None):
+def load_training_vectors(csv_path: Path, output_directory = None, start_index=0, num_rows=1000):
     # Create a pandas data frame to iterate through the csv
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path, skiprows=range(1, start_index + 1), nrows=num_rows)
+    print(f"Processing rows {start_index} to {start_index + len(df)}")
 
+    # Create a list to store metadata
+    metadata = []
 
     # Iterate through the csv
     for _, row in df.iterrows():
@@ -82,29 +91,54 @@ def load_training_vectors(csv_path: Path, output_directory = None):
             continue
        
         mood_vector = build_mood_vector(row)
-
-
         cleaned_name = sanitize_song_name(row["title"])
-        for index, spectrogram in enumerate(spectrograms):
-            # Save the data and associated target to .npy files
-            file_path = f'{output_directory}/{cleaned_name}_{(index+1)*10}s'
-            np.save(f'{file_path}_matrix', spectrogram)
-            print(f'Saved matrix to {file_path}_matrix')
-            np.save(f'{file_path}_target', mood_vector)
-            print(f'Saved mood vector to {file_path}_target')
- 
         
-
-
-
+        for index, spectrogram in enumerate(spectrograms):
+            # Create file names
+            spectrogram_file = f'{cleaned_name}_{(index+1)*10}s_matrix.npy'
+            target_file = f'{cleaned_name}_{(index+1)*10}s_target.npy'
+            
+            # Save the data and associated target to .npy files
+            matrix_file_path = f'{output_directory}/spectograms/{spectrogram_file}'
+            np.save(matrix_file_path, spectrogram)
+            print(f'Saved matrix to {matrix_file_path}')
+            
+            target_file_path = f'{output_directory}/targets/{target_file}'
+            np.save(target_file_path, mood_vector)
+            print(f'Saved mood vector to {target_file_path}')
+            
+            # Add to metadata
+            metadata.append({
+                'spectrogram_file': spectrogram_file,
+                'target_file': target_file,
+                'title': row["title"],
+                'artist': row["artist"]
+            })
 
         # Introduce a delay to prevent overloading the API
         time.sleep(1)  # Adjust the delay time as needed
 
+    # Create metadata DataFrame
+    new_metadata_df = pd.DataFrame(metadata)
+    
+    # Check if metadata file exists
+    metadata_path = f'{output_directory}/metadata.csv'
+    if Path(metadata_path).exists():
+        # Read existing metadata and append new data
+        existing_metadata = pd.read_csv(metadata_path)
+        combined_metadata = pd.concat([existing_metadata, new_metadata_df], ignore_index=True)
+        combined_metadata.to_csv(metadata_path, index=False)
+    else:
+        # If no existing metadata, save new metadata
+        new_metadata_df.to_csv(metadata_path, index=False)
 
 
 
+drive_name = "/Volumes/Drive/MoodySound/data"
 
-load_training_vectors(Path("/Users/rishi/MoodySound/dataset_creator/mood.csv"), Path("/Users/rishi/MoodySound/dataset/train"))
-
-#print(sanitize_song_name("Hard Way To Make An Easy Living The Bellamy Brothers"))
+load_training_vectors(
+    csv_path=Path("/Users/rishi/MoodySound/dataset_creator/augmented.csv"), 
+    output_directory=Path(drive_name),
+    start_index=0,
+    num_rows=10
+)

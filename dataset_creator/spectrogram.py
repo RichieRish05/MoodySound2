@@ -4,9 +4,7 @@ import librosa
 import numpy as np
 import tempfile
 
-#Search for the audio file
-audio_url = get_song_preview("Feel No Ways Drake")
-print(audio_url)
+
 
 
 def get_spectrogram_data(audio_url, sr=22050, duration=30):
@@ -24,8 +22,11 @@ def get_spectrogram_data(audio_url, sr=22050, duration=30):
         # Load the temporary file with a predetermined sampling rate and a duration of 30 seconds to preprocess data
         y, _ = librosa.load(temp_audio_path, sr=sr, duration=duration)
 
+        # Normalize the audio waveform to a range of [-1, 1].
+        y_normalized = librosa.util.normalize(y)
+
         # Obtain 3 spectograms that contain audio samples of 10s, 20s, and 30s
-        varied_spectograms = slice_spectogram_in_intervals(y)
+        varied_spectograms = slice_spectogram_in_intervals(y_normalized)
 
         return varied_spectograms
     
@@ -66,19 +67,23 @@ def slice_spectogram_in_intervals(y, sr=22050, min_duration=10, max_duration=30,
 
 
 
-"""
-=======
-TESTING 
-=======
+
+
+
+#Search for the audio file
+audio_url = get_song_preview("Hello")
+print(audio_url)
 
 spectrograms = get_spectrogram_data(audio_url)
 
 for s in spectrograms:
     print(s.shape)
 
+"""
 import sounddevice as sd
 
 sd.play(audio, samplerate=sr)
 sd.wait()  # Wait until the audio finishes playing
 """
+
 
