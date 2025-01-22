@@ -109,7 +109,7 @@ def load_training_vectors(csv_path: Path, output_directory = None, start_index=0
                     target_file = f'{cleaned_name}_{(index+1)*10}s_target.npy'
                     
                     # Save the data and associated target to .npy files
-                    matrix_file_path = f'{output_directory}/spectograms/{spectrogram_file}'
+                    matrix_file_path = f'{output_directory}/spectrograms/{spectrogram_file}'
                     np.save(matrix_file_path, spectrogram)
                     
                     target_file_path = f'{output_directory}/targets/{target_file}'
@@ -125,8 +125,8 @@ def load_training_vectors(csv_path: Path, output_directory = None, start_index=0
 
                 processed_count += 1
                 
-                # Print progress every 100 songs
-                if processed_count % 100 == 0:
+                # Print progress every 1000 songs
+                if processed_count % 1000 == 0:
                     print(f"Processed {processed_count}/{total_rows} songs. Errors: {error_count}")
                     
                     # Save metadata periodically
@@ -174,6 +174,6 @@ drive_name = "/Volumes/Drive/MoodySound/data"
 load_training_vectors(
     csv_path=Path("/Users/rishi/MoodySound2/dataset_creator/augmented.csv"), 
     output_directory=Path(drive_name),
-    start_index=0,  # Start from the beginning
-    num_rows=50000   # Process 50,0000 rows
+    start_index=0,  # Start from here
+    num_rows=20000   # Process 20,000 rows
 )
