@@ -61,8 +61,7 @@ class MoodyDataset(Dataset):
 # Remmember the mood_vector is already normalized
 
 
-#dataloader = DataLoader(MoodyDataset(config="/Volumes/Drive/MoodySound/data/metadata.csv"))
+dataloader = DataLoader(MoodyDataset(config="/Volumes/Drive/MoodySound/data/metadata.csv"))
 
-#for spectrogram, target in dataloader:
-#    print(f'Spec: {spectrogram}')
-#    print(f'Target: {target}')
+for spectrogram, target in dataloader:
+    print(spectrogram.shape)

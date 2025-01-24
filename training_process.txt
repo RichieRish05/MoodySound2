@@ -1,0 +1,14 @@
+Training Process:
+
+1. We define whether our not the process will run on the gpu or cpu by configuring our device
+
+2. We begin by defining the hyperparameters of our training such as batch size, input data size, etc.
+
+3. We then define our dataset.
+
+4. We then load in our data using pytorch's DataLoader
+
+5. Iterate through the dataloader and compute forward pass, gradient descent, then reset the optimizer gradients
+
+6. Test using validation set
+
