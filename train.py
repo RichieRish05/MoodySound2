@@ -1,52 +1,28 @@
-import os
 import torch
-from torch import nn
-from torchvision.datasets import MNIST
+import torch.nn as nn
+from model import MoodyConvNet
 from dataset import MoodyDataset
-from torch.utils.data import DataLoade
-from torchvision import transforms
-from torch.utils.data import DataLoader
 from sklearn.model_selection import KFold
 
-def reset_weights(m):
+
+def reset_weights(model):
   '''
-    Try resetting model weights to avoid
+    Try resetting weights adjustable layers of the model to avoid
     weight leakage.
   '''
-  for layer in m.children():
-   if hasattr(layer, 'reset_parameters'):
-    print(f'Reset trainable parameters of layer = {layer}')
-    layer.reset_parameters()
-
-class SimpleConvNet(nn.Module):
-  '''
-    Simple Convolutional Neural Network
-  '''
-  def __init__(self):
-    super().__init__()
-    self.layers = nn.Sequential(
-      nn.Conv2d(1, 10, kernel_size=3),
-      nn.ReLU(),
-      nn.Flatten(),
-      nn.Linear(26 * 26 * 10, 50),
-      nn.ReLU(),
-      nn.Linear(50, 20),
-      nn.ReLU(),
-      nn.Linear(20, 10)
-    )
+  for layer in model.children():
+    if hasattr(layer, 'reset_parameters'):
+      print(f'Reset trainable parameters of layer = {layer}')
+      layer.reset_parameters() 
 
 
-  def forward(self, x):
-    '''Forward pass'''
-    return self.layers(x)
-  
-  
 if __name__ == '__main__':
+
   
   # Configuration options
   k_folds = 5
-  num_epochs = 1
-  loss_function = nn.CrossEntropyLoss()
+  num_epochs = 32
+  loss_function = nn.MSELoss()
   
   # For fold results
   results = {}
@@ -54,10 +30,9 @@ if __name__ == '__main__':
   # Set fixed random number seed
   torch.manual_seed(42)
   
-  # Prepare Moody dataset, we split later
+  # Prepare MoodySound dataset, we split later
   config = "/Volumes/Drive/MoodySound/data/metadata.csv"
   dataset = MoodyDataset(config=config)
-  dataloader = DataLoader(dataset=dataset, batch_size=100, shuffle=True, num_workers=2)
   
   # Define the K-fold Cross Validator
   kfold = KFold(n_splits=k_folds, shuffle=True)
@@ -67,6 +42,7 @@ if __name__ == '__main__':
 
   # K-fold Cross Validation model evaluation
   for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
+
     
     # Print
     print(f'FOLD {fold}')
@@ -85,7 +61,7 @@ if __name__ == '__main__':
                       batch_size=10, sampler=test_subsampler)
     
     # Init the neural network
-    network = SimpleConvNet()
+    network = MoodyConvNet()
     network.apply(reset_weights)
     
     # Initialize optimizer
@@ -93,6 +69,8 @@ if __name__ == '__main__':
     
     # Run the training loop for defined number of epochs
     for epoch in range(0, num_epochs):
+    
+      network.train()
 
       # Print epoch
       print(f'Starting epoch {epoch+1}')
@@ -139,7 +117,8 @@ if __name__ == '__main__':
     torch.save(network.state_dict(), save_path)
 
     # Evaluationfor this fold
-    correct, total = 0, 0
+    total_mse= 0.0
+    total_samples = 0
     with torch.no_grad():
 
       # Iterate over the test data and generate predictions
@@ -152,14 +131,15 @@ if __name__ == '__main__':
         outputs = network(inputs)
 
         # Set total and correct
-        _, predicted = torch.max(outputs.data, 1)
-        total += targets.size(0)
-        correct += (predicted == targets).sum().item()
+        mse = loss_function(outputs, targets).item()
+        total_mse+= mse * targets.size(0)
+        total_samples += targets.size(0)
 
-      # Print accuracy
-      print('Accuracy for fold %d: %d %%' % (fold, 100.0 * correct / total))
-      print('--------------------------------')
-      results[fold] = 100.0 * (correct / total)
+        # Print accuracy
+        fold_mse = total_mse / total_samples
+        print(f'MSE for fold {fold}: {fold_mse:.4f}')
+        print('--------------------------------')
+        results[fold] = fold_mse
     
   # Print fold results
   print(f'K-FOLD CROSS VALIDATION RESULTS FOR {k_folds} FOLDS')

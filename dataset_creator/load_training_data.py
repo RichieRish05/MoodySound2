@@ -120,7 +120,8 @@ def load_training_vectors(csv_path: Path, output_directory = None, start_index=0
                         'spectrogram_file': spectrogram_file,
                         'target_file': target_file,
                         'title': row["title"],
-                        'artist': row["artist"]
+                        'artist': row["artist"],
+                        'comprehensive_mood': row['comprehensive_mood']
                     })
 
                 processed_count += 1
@@ -175,5 +176,5 @@ load_training_vectors(
     csv_path=Path("/Users/rishi/MoodySound2/dataset_creator/augmented.csv"), 
     output_directory=Path(drive_name),
     start_index=0,  # Start from here
-    num_rows=20000   # Process 20,000 rows
+    num_rows=15000   # Process 15,000 rows
 )

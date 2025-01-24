@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 
@@ -23,10 +24,34 @@ def get_dataset_statistics(csv_file_path: str):
 
     return mood_counts
 
+def get_dataset_statistics_from_mood_vectors(csv_file_path: str = "/Volumes/Drive/MoodySound/data/metadata.csv"):
+    metadata_df = pd.read_csv(csv_file_path)
+    print(str(len(metadata_df)) + ' samples')
+
+
+    features = {
+        "danceability": 0,
+        "mood_acoustic": 0,
+        "mood_aggressive": 0,
+        "mood_electronic": 0,
+        "mood_happy": 0,
+        "mood_party": 0,
+        "mood_relaxed": 0,
+        "mood_sad": 0
+    }
+
+    for feature in features.keys(): 
+        features[feature] = metadata_df[metadata_df.comprehensive_mood == feature].shape[0]
+
+    print(features)
+    
+    return features
+
+            
 
 
 
-
+stats = get_dataset_statistics_from_mood_vectors("/Volumes/Drive/MoodySound/data/metadata.csv")
 
 
 
@@ -53,3 +78,4 @@ stats = get_dataset_statistics("/Users/rishi/MoodySound2/dataset_creator/augment
 print(stats)
 
 """
+

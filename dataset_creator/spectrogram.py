@@ -51,8 +51,8 @@ def slice_spectogram_in_intervals(y, sr=22050, min_duration=10, max_duration=30,
         # Format the audio to a standard shape
         audio = np.pad(audio, (0, max(0, target_length - len(audio))), mode='constant')[:target_length]
 
-        # Generate a Mel spectrogram
-        S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+        # Generate a Mel spectrogram based on the sliced audio
+        S = librosa.feature.melspectrogram(y=audio, sr=sr, n_mels=128, fmax=8000)
 
         # Convert power to decibels
         S_db = librosa.power_to_db(S, ref=np.max)

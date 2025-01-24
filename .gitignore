@@ -13,3 +13,9 @@ acousticbrainz-highlevel-json-20220623
 dataset/
 *.csv
 
+# Ignore workspace
+MoodySound2.code-workspace
+
+
+# Ignore experiments
+train2.py
