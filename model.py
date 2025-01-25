@@ -17,6 +17,7 @@ class MoodyConvNet(nn.Module):
     self.layers = nn.Sequential(
       # First convolutional layer
       nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1),
+      nn.BatchNorm2d(32), 
       nn.ReLU(),
       nn.MaxPool2d(kernel_size=(2, 4)),  # Reduce both frequency and time dimensions
 

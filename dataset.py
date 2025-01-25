@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 
 
@@ -51,7 +51,6 @@ class MoodyDataset(Dataset):
 
         if self.transform:
             spec = self.transform(spec)
-            mood = self.transform(mood)
         
         return spec, mood
 
@@ -60,8 +59,9 @@ class MoodyDataset(Dataset):
 # Do i need any transformations for the spectrogram or mood_vector?
 # Remmember the mood_vector is already normalized
 
-
+"""
 dataloader = DataLoader(MoodyDataset(config="/Volumes/Drive/MoodySound/data/metadata.csv"))
 
 for spectrogram, target in dataloader:
     print(spectrogram.shape)
+"""

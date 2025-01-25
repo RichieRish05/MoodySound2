@@ -4,7 +4,6 @@ import numpy as np
 import time
 from song_preview import get_song_preview
 from spectrogram import get_spectrogram_data
-import os
 
 
 
@@ -165,6 +164,8 @@ def save_metadata(metadata, output_directory):
     if Path(metadata_path).exists():
         existing_metadata = pd.read_csv(metadata_path)
         combined_metadata = pd.concat([existing_metadata, new_metadata_df], ignore_index=True)
+        # Drop duplicates based on spectrogram_file
+        combined_metadata = combined_metadata.drop_duplicates(subset=['spectrogram_file'], keep='first')
         combined_metadata.to_csv(metadata_path, index=False)
     else:
         new_metadata_df.to_csv(metadata_path, index=False)
@@ -175,6 +176,6 @@ drive_name = "/Volumes/Drive/MoodySound/data"
 load_training_vectors(
     csv_path=Path("/Users/rishi/MoodySound2/dataset_creator/augmented.csv"), 
     output_directory=Path(drive_name),
-    start_index=0,  # Start from here
-    num_rows=15000   # Process 15,000 rows
+    start_index=15000,  # Start from here
+    num_rows=20000   # Process 15,000 rows
 )

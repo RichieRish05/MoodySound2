@@ -18,4 +18,5 @@ MoodySound2.code-workspace
 
 
 # Ignore experiments
-train2.py
+training_process.txt
+k_fold_training_process.txt
