@@ -176,6 +176,6 @@ drive_name = "/Volumes/Drive/MoodySound/data"
 load_training_vectors(
     csv_path=Path("/Users/rishi/MoodySound2/dataset_creator/augmented.csv"), 
     output_directory=Path(drive_name),
-    start_index=15000,  # Start from here
-    num_rows=20000   # Process 15,000 rows
+    start_index=0,  # Start from here
+    num_rows=10   # Process 15,000 rows
 )
