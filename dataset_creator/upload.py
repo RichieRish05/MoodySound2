@@ -1,5 +1,6 @@
 from pathlib import Path
 from google.cloud.storage import Client, transfer_manager
+from google.oauth2 import service_account
 
 
 def find_files_not_uploaded(bucket_name, string_paths: list[str]):
@@ -50,8 +51,11 @@ def upload_directory_with_transfer_manager(bucket_name, source_directory, worker
     # of processes by passing `worker_type=transfer_manager.THREAD`.
     # workers=8
 
+    credentials = service_account.Credentials.from_service_account_file(
+        '/Users/rishi/Desktop/Google Cloud Keys/testmoodysound-e7d906478321.json'
+    )
 
-    storage_client = Client()
+    storage_client = Client(credentials=credentials)
     bucket = storage_client.bucket(bucket_name)
 
     # Generate a list of paths (in string form) relative to the `directory`.

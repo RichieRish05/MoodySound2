@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 from model import MoodyConvNet
 from dataset import MoodyDataset
 from sklearn.model_selection import KFold
+import gcsfs
 
 def reset_weights(model):
     for layer in model.children():
@@ -116,8 +117,10 @@ if __name__ == "__main__":
 
 
     # MoodySound Dataset
-    config = "/Volumes/Drive/MoodySound/data/metadata.csv"
-    dataset = MoodyDataset(config=config)
+    config = "gs://testmoodysound/moodysoundtestbucket/metadata.csv"
+    fs = gcsfs.GCSFileSystem(project='testmoodysound',
+                             token='/content/testmoodysound-e7d906478321.json')
+    dataset = MoodyDataset(config=config, file_system=fs)
 
 
     # Define the k-fold cross validation split
