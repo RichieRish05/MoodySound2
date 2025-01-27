@@ -86,7 +86,7 @@ def upload_directory_with_transfer_manager(bucket_name, source_directory, worker
         string_paths, 
         source_directory=source_directory,
         max_workers=workers,
-        worker_type=transfer_manager.THREAD  # Use threads instead of processes
+        worker_type=transfer_manager.THREAD  # Use threads to handle
     )
 
     for name, result in zip(string_paths, results):
@@ -103,11 +103,11 @@ def upload_directory_with_transfer_manager(bucket_name, source_directory, worker
 
 src_dir = '/Volumes/Drive/MoodySound/data/'
 bucket_name = "moodysoundtestbucket"
-upload_directory_with_transfer_manager(bucket_name, src_dir)
+upload_directory_with_transfer_manager(bucket_name, src_dir, workers=4)
 
 
 """
-# Remove existing metadata files from your external drive
+# Remove existing metadata files from your external drive in terminal after running this script
 find /Volumes/Drive/MoodySound/data -name "._*" -delete
 find /Volumes/Drive/MoodySound/data -name ".DS_Store" -delete
 """

@@ -1,21 +1,22 @@
 import pandas as pd
 import numpy as np
-
+import gcsfs
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 
 
 
-def read_spectrogram(spectrogram_path):
-    spectrogram = np.load(spectrogram_path)
+def read_spectrogram(spectrogram_path, fs):
+    with fs.open(spectrogram_path, 'rb') as f:
+        spectrogram = np.load(f)
     # Convert to torch float tensor and add channel dimension
     return torch.FloatTensor(spectrogram).unsqueeze(0)
 
-def read_mood_vector(mood_vector_path):
-    mood = np.load(mood_vector_path)
+def read_mood_vector(mood_vector_path, fs):
+    with fs.open(mood_vector_path, 'rb') as f:
+        mood = np.load(f)
     # Convert to torch float tensor
     return torch.FloatTensor(mood)
-
 
 class MoodyDataset(Dataset):
     """
@@ -29,10 +30,13 @@ class MoodyDataset(Dataset):
         - data_dir/targets/
     """
     
-    def __init__(self, config, transform=None, data_dir="/Volumes/Drive/MoodySound/data"):
-        self.df = pd.read_csv(config)
+    def __init__(self, config, file_system, transform=None):
+        with file_system.open(config, 'rb') as f:
+            self.df = pd.read_csv(f)
         self.transform = transform
-        self.data_dir = data_dir
+        self.file_system = file_system
+         # Extract bucket path from config
+        self.bucket_path = '/'.join(config.split('/')[:-1])  # removes metadata.csv from path
     
     def __len__(self):
         return len(self.df)
@@ -42,11 +46,11 @@ class MoodyDataset(Dataset):
             idx = idx.tolist() # to get the row of a csv
         
 
-        spec_path = self.data_dir + '/spectrograms/' + self.df.iloc[idx]["spectrogram_file"]
-        mood_path = self.data_dir + '/targets/' + self.df.iloc[idx]["target_file"]
+        spec_path = f'{self.bucket_path}/spectrograms/' + self.df.iloc[idx]["spectrogram_file"]
+        mood_path = f'{self.bucket_path}/targets/' + self.df.iloc[idx]["target_file"]
 
-        spec = read_spectrogram(spec_path)
-        mood = read_mood_vector(mood_path)
+        spec = read_spectrogram(spec_path, self.file_system)
+        mood = read_mood_vector(mood_path, self.file_system)
         
 
         if self.transform:
@@ -56,12 +60,21 @@ class MoodyDataset(Dataset):
 
 
 
-# Do i need any transformations for the spectrogram or mood_vector?
-# Remmember the mood_vector is already normalized
 
-"""
-dataloader = DataLoader(MoodyDataset(config="/Volumes/Drive/MoodySound/data/metadata.csv"))
 
-for spectrogram, target in dataloader:
-    print(spectrogram.shape)
-"""
+
+def test():
+    fs = gcsfs.GCSFileSystem(project='testmoodysound',
+                            token='/Users/rishi/Desktop/Google Cloud Keys/testmoodysound-e7d906478321.json')
+    
+
+    dataset = MoodyDataset(config="gs://moodysoundtestbucket/metadata.csv", file_system=fs)
+    dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
+    
+    print(next(iter(dataloader)))
+    print(next(iter(dataloader)))
+
+
+if __name__ == "__main__":
+    test()
+
