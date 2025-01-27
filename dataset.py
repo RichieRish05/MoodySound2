@@ -16,7 +16,7 @@ def read_mood_vector(mood_vector_path, fs):
     with fs.open(mood_vector_path, 'rb') as f:
         mood = np.load(f)
     # Convert to torch float tensor
-    return torch.FloatTensor(mood)
+    return torch.FloatTensor(mood).squeeze(0)
 
 class MoodyDataset(Dataset):
     """

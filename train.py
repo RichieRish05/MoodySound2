@@ -60,7 +60,7 @@ def train_one_epoch(epoch, model, trainloader, optimizer, loss_function, fold, d
 
 
 def save_model(model, epoch, fold):
-    save_path = f"/Users/rishi/Desktop/model_fold_{fold}_epoch_{epoch+1}.pth"
+    save_path = f"/Users/rishi/Desktop/Models/model_fold_{fold}_epoch_{epoch+1}.pth"
     try:
         torch.save(model.state_dict(), save_path)
     except Exception as e:
@@ -114,12 +114,12 @@ if __name__ == "__main__":
     k_folds = 5
     loss_function = nn.MSELoss()
 
-
+    # /Users/rishi/Desktop/Google Cloud Keys/testmoodysound-e7d906478321.json
 
     # MoodySound Dataset
-    config = "gs://testmoodysound/moodysoundtestbucket/metadata.csv"
     fs = gcsfs.GCSFileSystem(project='testmoodysound',
                              token='/content/testmoodysound-e7d906478321.json')
+    config = "gs://moodysoundtestbucket/metadata.csv"
     dataset = MoodyDataset(config=config, file_system=fs)
 
 
