@@ -60,7 +60,7 @@ def train_one_epoch(epoch, model, trainloader, optimizer, loss_function, fold, d
 
 
 def save_model(model, epoch, fold):
-    save_path = f"/Volumes/Drive/MoodySound/models/model_fold_{fold}_epoch_{epoch+1}.pth"
+    save_path = f"/Users/rishi/Desktop/model_fold_{fold}_epoch_{epoch+1}.pth"
     try:
         torch.save(model.state_dict(), save_path)
     except Exception as e:
