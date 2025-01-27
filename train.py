@@ -102,7 +102,7 @@ def evaluate_model(model, testloader, loss_function, fold, device):
 if __name__ == "__main__":
 
     # Device configuration
-    device = torch.device('cuda' if torch.cuda_is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
     # Hyper parameters
