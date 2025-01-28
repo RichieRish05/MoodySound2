@@ -76,19 +76,11 @@ def augment_dataset(base_csv: Path, larger_csv: Path, number_of_songs_per_split:
 
 
 
-
-    # Shuffle the augmented dataset
-    augmented_df = augmented_df.sample(frac=1).reset_index(drop=True)
-
-    
-
-
-
     # Save the augmented dataset to the specified output CSV
     augmented_df.to_csv(output_csv, index=False, float_format='%.20f')
 
 
 
-# Load the augmented csv file with 40,000 samples of each mood
-augment_dataset(Path("dataset_creator/base_moods.csv"), Path("dataset_creator/big_data_mood.csv"), 40000, Path("dataset_creator/augmented.csv"))
+# Load the augmented csv file with 18,000 samples of each mood
+augment_dataset(Path("dataset_creator/base_moods.csv"), Path("dataset_creator/big_data_mood.csv"), 16000, Path("dataset_creator/augmented.csv"))
 
