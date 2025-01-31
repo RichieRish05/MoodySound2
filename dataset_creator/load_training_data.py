@@ -165,7 +165,7 @@ def save_metadata(metadata, output_directory):
         existing_metadata = pd.read_csv(metadata_path)
         combined_metadata = pd.concat([existing_metadata, new_metadata_df], ignore_index=True)
         # Drop duplicates based on spectrogram_file
-        combined_metadata = combined_metadata.drop_duplicates(subset=['spectrogram_file'], keep='first')
+        combined_metadata = combined_metadata.drop_duplicates(subset=['spectrogram_file'], keep='last')
         combined_metadata.to_csv(metadata_path, index=False)
     else:
         new_metadata_df.to_csv(metadata_path, index=False)
@@ -176,6 +176,12 @@ drive_name = "/Volumes/Drive/MoodySound/data"
 load_training_vectors(
     csv_path=Path("/Users/rishi/MoodySound2/dataset_creator/augmented.csv"), 
     output_directory=Path(drive_name),
-    start_index=0,  # Start from here
-    num_rows=10   # Process 15,000 rows
+    start_index=40000,  # Start from here
+    num_rows=4000   # Process 10,000 rows at a time
 )
+
+"""
+# Remove existing metadata files from your external drive in terminal after running this script to remove unwanted overhead
+find /Volumes/Drive/MoodySound/data -name "._*" -delete
+find /Volumes/Drive/MoodySound/data -name ".DS_Store" -delete
+"""

@@ -110,8 +110,4 @@ bucket_name = "moodysoundtestbucket"
 upload_directory_with_transfer_manager(bucket_name, src_dir, workers=4)
 
 
-"""
-# Remove existing metadata files from your external drive in terminal after running this script
-find /Volumes/Drive/MoodySound/data -name "._*" -delete
-find /Volumes/Drive/MoodySound/data -name ".DS_Store" -delete
-"""
+

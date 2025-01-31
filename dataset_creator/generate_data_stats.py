@@ -44,14 +44,15 @@ def get_dataset_statistics_from_comprehensive_mood(csv_file_path: str = "/Volume
         features[feature] = metadata_df[metadata_df.comprehensive_mood == feature].shape[0]
 
     
-    return features
+    print(features)
 
             
 if __name__ == "__main__":
 
     stats = get_dataset_statistics("dataset_creator/augmented.csv")
-    print(stats)
-    #stats = get_dataset_statistics_from_comprehensive_mood("/Volumes/Drive/MoodySound/data/metadata.csv")
+    #print(stats)
+    stats = get_dataset_statistics_from_comprehensive_mood("/Volumes/Drive/MoodySound/data/metadata.csv")
+
 
 
 

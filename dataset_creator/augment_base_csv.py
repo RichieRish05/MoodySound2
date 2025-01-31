@@ -82,5 +82,5 @@ def augment_dataset(base_csv: Path, larger_csv: Path, number_of_songs_per_split:
 
 
 # Load the augmented csv file with 18,000 samples of each mood
-augment_dataset(Path("dataset_creator/base_moods.csv"), Path("dataset_creator/big_data_mood.csv"), 16000, Path("dataset_creator/augmented.csv"))
+augment_dataset(Path("dataset_creator/base_moods.csv"), Path("dataset_creator/big_data_mood.csv"), 5500, Path("dataset_creator/augmented.csv"))
 

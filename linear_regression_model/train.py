@@ -105,7 +105,7 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-    # Hyper parameters
+    # Hyper parameters (USE RAYTUNE)
     spectrogram_size = ([1, 128, 1292])
     num_epochs = 32
     batch_size = 100
