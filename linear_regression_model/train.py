@@ -4,7 +4,6 @@ from torch.utils.data import DataLoader
 from model import MoodyConvNet
 from dataset import MoodyDataset
 from sklearn.model_selection import KFold
-import gcsfs
 
 def reset_weights(model):
     for layer in model.children():
@@ -51,8 +50,8 @@ def train_one_epoch(epoch, model, trainloader, optimizer, loss_function, fold, d
             current_loss = 0.0
             torch.cuda.empty_cache()  
         
-        # Free up memory
-        del outputs, spectrograms, targets, loss
+            # Free up memory
+            del outputs, spectrograms, targets, loss
     
     # Save the model after each epoch
     print(f'Saving model after epoch {epoch+1}')
@@ -114,13 +113,10 @@ if __name__ == "__main__":
     k_folds = 5
     loss_function = nn.MSELoss()
 
-    # /Users/rishi/Desktop/Google Cloud Keys/testmoodysound-e7d906478321.json
 
     # MoodySound Dataset
-    fs = gcsfs.GCSFileSystem(project='testmoodysound',
-                             token='/content/testmoodysound-e7d906478321.json')
-    config = "gs://moodysoundtestbucket/metadata.csv"
-    dataset = MoodyDataset(config=config, file_system=fs)
+    config = "content/MoodySound/data/metadata.csv"
+    dataset = MoodyDataset(config=config)
 
 
     # Define the k-fold cross validation split
@@ -160,13 +156,6 @@ if __name__ == "__main__":
         optimizer = torch.optim.Adam(model.parameters(), 
                                     lr = learning_rate)
 
-        # Initialize the learning rate scheduler
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer,
-            T_max=num_epochs,    # Total number of epochs
-            eta_min=1e-6         # Minimum learning rate
-        )
-
         # Train the model
         for epoch in range(0, num_epochs):
             print(f'Training epoch {epoch+1}')
@@ -178,8 +167,6 @@ if __name__ == "__main__":
                             loss_function=loss_function,
                             device=device)
             
-            # Update the learning rate
-            scheduler.step()
 
         # Training process is complete for this fold
         print(f'Training process is complete for fold {fold}')
@@ -187,9 +174,6 @@ if __name__ == "__main__":
         # Print about testing
         print('Starting testing')
 
-        # Evaluation for this fold
-        total_mse= 0.0
-        total_samples = 0
 
         # Evaluate the model
         avg_mse = evaluate_model(model=model, 

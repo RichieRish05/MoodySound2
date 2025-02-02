@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
+import os
 
 
 
@@ -29,10 +30,10 @@ class MoodyDataset(Dataset):
         - data_dir/targets/
     """
     
-    def __init__(self, config, parent_dir_path, transform=None):
+    def __init__(self, config, transform=None):
         self.df = pd.read_csv(config)
         self.transform = transform
-        self.parent_dir_path = parent_dir_path
+        self.parent_dir_path = os.path.dirname(config)
 
         
     

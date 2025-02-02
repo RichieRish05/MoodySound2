@@ -10,8 +10,9 @@ class MoodyConvNet(nn.Module):
   '''
     Simple Convolutional Neural Network
   '''
-  def __init__(self):
+  def __init__(self, dropout_rate):
     super().__init__()
+    self.dropout_rate = dropout_rate
   
     # Convolutional layers
     self.layers = nn.Sequential(
@@ -42,15 +43,15 @@ class MoodyConvNet(nn.Module):
       # Dense layers
       nn.Linear(256 * 8 * 5, 512),  # Based on spectrogram dimensions
       nn.ReLU(),
-      nn.Dropout(0.3),
+      nn.Dropout(self.dropout_rate),
       
       nn.Linear(512, 256),
       nn.ReLU(),
-      nn.Dropout(0.3),
+      nn.Dropout(self.dropout_rate),
       
       nn.Linear(256, 128),
       nn.ReLU(),
-      nn.Dropout(0.3),
+      nn.Dropout(self.dropout_rate),
       
       # Output layer
       nn.Linear(128, 8)  # 8 emotion classes
