@@ -45,7 +45,7 @@ def build_mood_vector(row):
     # Normalize mood vector
     normalized_vector = mood_vector / norm
     
-    return mood_vector
+    return normalized_vector
 
 
 def build_spectogram_data(row):

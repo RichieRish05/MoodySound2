@@ -1,4 +1,5 @@
 import torch
+import ray
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from model import MoodyConvNet
@@ -6,7 +7,6 @@ from dataset import MoodyDataset
 from ray import tune
 from ray.tune.schedulers import ASHAScheduler
 import os
-import ray
 from ray.tune.search.optuna import OptunaSearch  
 
 
@@ -135,7 +135,6 @@ def train_model(config):
     """
 
     # Get hyperparameters from the config
-
     learning_rate = config['learning_rate']
     weight_decay = config['weight_decay']
     batch_size = config['batch_size']
@@ -158,7 +157,6 @@ def train_model(config):
                                 weight_decay = weight_decay)
     
     loss_function =  nn.MSELoss()
-
 
     for epoch in range(num_epochs):
         train_one_epoch(epoch=epoch, 
@@ -216,7 +214,7 @@ def main():
 
 
         run_config = tune.RunConfig(
-            storage_path = "/content/Drive/MyDrive/MoodyModelsTest",
+            storage_path = "/content/drive/MyDrive/MoodyModelsTest",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  # Only keep the best checkpoint
@@ -236,12 +234,11 @@ def main():
     
     # Save best model
     best_checkpoint = best_trial.checkpoint.value
+    best_model_metadata = torch.load(os.path.join(best_checkpoint, "checkpoint"))
     best_model = MoodyConvNet()
-    best_model.load_state_dict(
-        torch.load(os.path.join(best_checkpoint, "checkpoint"))["model_state_dict"]
-    )
+    best_model.load_state_dict(best_model_metadata["model_state_dict"])
     torch.save(best_model.state_dict(), 
-              "/content/Drive/MyDrive/MoodyModelsTest/best_model.pth")
+              "/content/drive/MyDrive/MoodyModelsTest/best_model.pth")
 
 
 

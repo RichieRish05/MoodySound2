@@ -15,8 +15,13 @@ def read_spectrogram(spectrogram_path):
 def read_mood_vector(mood_vector_path):
     # Load in the mood vector
     mood = np.load(mood_vector_path)
+
+    # Normalize the vector
+    norm = np.linalg.norm(mood)
+    normalized_mood = mood / norm
+
     # Convert to torch float tensor
-    return torch.FloatTensor(mood).squeeze(0)
+    return torch.FloatTensor(normalized_mood).squeeze(0)
 
 class MoodyDataset(Dataset):
     """

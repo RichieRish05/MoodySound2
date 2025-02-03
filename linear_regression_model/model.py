@@ -10,7 +10,7 @@ class MoodyConvNet(nn.Module):
   '''
     Simple Convolutional Neural Network
   '''
-  def __init__(self, dropout_rate):
+  def __init__(self, dropout_rate=0.3):
     super().__init__()
     self.dropout_rate = dropout_rate
   
