@@ -1,12 +1,15 @@
 import boto3
 import os
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
+BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+CACHE_DIR = '/cached-data'
+MAX_RETRIES = 3
 
 def download_to_EC2_instance_with_retry():
     s3 = boto3.client('s3')
-    BUCKET_NAME = 'your-bucket-name'
-    CACHE_DIR = '/cached-data'
-    MAX_RETRIES = 3
     
     print("Starting download process...")
     

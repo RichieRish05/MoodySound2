@@ -35,14 +35,11 @@ class MoodyDataset(Dataset):
         - data_dir/targets/
     """
     
-    def __init__(self, config, transform=None, cache_dir='/data/cache'):
+    def __init__(self, config, transform=None, cache_dir='/cached-data'):
         self.df = pd.read_csv(config)
         self.transform = transform
         self.cache_dir = cache_dir
         
-        # Verify cache directory exists
-        if not os.path.exists(cache_dir):
-            raise ValueError(f"Cache directory {cache_dir} does not exist. Please run cache_dataset.py first.")
     
     def __len__(self):
         return len(self.df)
@@ -55,9 +52,6 @@ class MoodyDataset(Dataset):
         spec_path = os.path.join(self.cache_dir, 'spectrograms', self.df.iloc[idx]["spectrogram_file"])
         mood_path = os.path.join(self.cache_dir, 'targets', self.df.iloc[idx]["target_file"])
         
-        # Verify files exist in cache
-        if not os.path.exists(spec_path) or not os.path.exists(mood_path):
-            raise FileNotFoundError(f"Files not found in cache directory. Spectrogram: {spec_path}, Mood: {mood_path}")
 
         spec = read_spectrogram(spec_path)
         mood = read_mood_vector(mood_path)
