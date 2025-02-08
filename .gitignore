@@ -20,3 +20,6 @@ MoodySound2.code-workspace
 # Ignore experiments
 training_process.txt
 k_fold_training_process.txt
+
+# Ignore .env file
+.env

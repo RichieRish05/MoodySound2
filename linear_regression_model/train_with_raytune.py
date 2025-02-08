@@ -9,6 +9,11 @@ from ray.tune.schedulers import ASHAScheduler
 import os
 from ray.tune.search.optuna import OptunaSearch  
 import boto3
+from dotenv import load_dotenv
+
+# Load the environment variables
+load_dotenv()
+BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
 
 def upload_metadata_to_s3(checkpoint_data, bucket_name, file_name):
     try:
@@ -233,7 +238,7 @@ def main():
 
 
         run_config = tune.RunConfig(
-            storage_path = "s3://your-bucket-name/ray_results/",
+            storage_path = f"s3://{BUCKET_NAME}/ray_results/",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  # Only keep the best checkpoint
@@ -253,7 +258,7 @@ def main():
     
     # Save best model
     best_checkpoint = best_trial.checkpoint.value
-    upload_metadata_to_s3(best_checkpoint, "rishitestbucket01", "best_model.pth")
+    upload_metadata_to_s3(best_checkpoint, BUCKET_NAME, "best_model.pth")
 
 
 

@@ -49,9 +49,10 @@ def get_dataset_statistics_from_comprehensive_mood(csv_file_path: str = "/Volume
             
 if __name__ == "__main__":
 
-    stats = get_dataset_statistics("dataset_creator/augmented.csv")
+    #stats = get_dataset_statistics("dataset_creator/augmented.csv")
     #print(stats)
     stats = get_dataset_statistics_from_comprehensive_mood("/Volumes/Drive/MoodySound/data/metadata.csv")
+    stats = get_dataset_statistics_from_comprehensive_mood("/Volumes/Drive/MoodySound/data/shuffled_metadata.csv")
 
 
 
