@@ -8,6 +8,11 @@ from ray import tune
 from ray.tune.schedulers import ASHAScheduler
 import os
 from ray.tune.search.optuna import OptunaSearch  
+import boto3
+
+def upload_model_to_s3(model, bucket_name, model_name):
+    s3 = boto3.client('s3')
+    s3.upload_file(model, bucket_name, model_name)
 
 
 def load_data(config, batch_size):
@@ -33,7 +38,7 @@ def load_data(config, batch_size):
         dataset=train_dataset,
         batch_size=batch_size,
         shuffle=True
-    ) 
+    )  
 
     testloader = DataLoader(
         dataset=test_dataset,
@@ -145,7 +150,7 @@ def train_model(config):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Load the data
-    trainloader, testloader, _ = load_data(config, batch_size)
+    trainloader, _ , val_loader = load_data(config, batch_size)
 
 
     # Initialize the model
@@ -168,7 +173,7 @@ def train_model(config):
         
         # Evaluate the model
         avg_mse = evaluate_model(model=model, 
-                                testloader=testloader, 
+                                testloader=val_loader, 
                                 loss_function=loss_function, 
                                 device=device)
         
@@ -177,10 +182,11 @@ def train_model(config):
 
 
 def main():
+    # Define the configuration space for the hyperparameters
     config = {
         'learning_rate': tune.loguniform(1e-5, 1e-3),
         'weight_decay': tune.loguniform(1e-5, 1e-3),
-        'batch_size': [32,64,128,256],
+        'batch_size': [128,256,512],
         'num_epochs': 32,
         'dropout_rate': tune.uniform(0.1, 0.5),
     }
@@ -188,7 +194,7 @@ def main():
     scheduler = ASHAScheduler(
         max_t=config['num_epochs'], # Total number of epochs to run
         grace_period=2, # Number of epochs to wait before cutting any models out
-        reduction_factor=2 # Cut half of the models
+        reduction_factor=1 # Cut half of the models
     )
 
     search_alg = OptunaSearch(
@@ -214,7 +220,7 @@ def main():
 
 
         run_config = tune.RunConfig(
-            storage_path = "/content/drive/MyDrive/MoodyModelsTest",
+            storage_path = "s3://your-bucket-name/ray_results/",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  # Only keep the best checkpoint
@@ -237,8 +243,10 @@ def main():
     best_model_metadata = torch.load(os.path.join(best_checkpoint, "checkpoint"))
     best_model = MoodyConvNet()
     best_model.load_state_dict(best_model_metadata["model_state_dict"])
-    torch.save(best_model.state_dict(), 
-              "/content/drive/MyDrive/MoodyModelsTest/best_model.pth")
+
+
+
+    upload_model_to_s3(best_model, "rishitestbucket01", "best_model.pth")
 
 
 

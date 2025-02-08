@@ -5,5 +5,6 @@ torch==2.0.1
 torchvision==0.15.2
 scikit-learn
 librosa
-google-cloud-storage
-gcsfs
+boto3
+ray[tune]
+ray[air]

@@ -35,28 +35,33 @@ class MoodyDataset(Dataset):
         - data_dir/targets/
     """
     
-    def __init__(self, config, transform=None):
+    def __init__(self, config, transform=None, cache_dir='/data/cache'):
         self.df = pd.read_csv(config)
         self.transform = transform
-        self.parent_dir_path = os.path.dirname(config)
-
+        self.cache_dir = cache_dir
         
+        # Verify cache directory exists
+        if not os.path.exists(cache_dir):
+            raise ValueError(f"Cache directory {cache_dir} does not exist. Please run cache_dataset.py first.")
     
     def __len__(self):
         return len(self.df)
     
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
-            idx = idx.tolist() # to get the row of a csv
+            idx = idx.tolist()
         
-
-        spec_path = f'{self.parent_dir_path}/spectrograms/' + self.df.iloc[idx]["spectrogram_file"]
-        mood_path = f'{self.parent_dir_path}/targets/' + self.df.iloc[idx]["target_file"]
+        # Use cache directory to load spectrogram and mood vector
+        spec_path = os.path.join(self.cache_dir, 'spectrograms', self.df.iloc[idx]["spectrogram_file"])
+        mood_path = os.path.join(self.cache_dir, 'targets', self.df.iloc[idx]["target_file"])
+        
+        # Verify files exist in cache
+        if not os.path.exists(spec_path) or not os.path.exists(mood_path):
+            raise FileNotFoundError(f"Files not found in cache directory. Spectrogram: {spec_path}, Mood: {mood_path}")
 
         spec = read_spectrogram(spec_path)
         mood = read_mood_vector(mood_path)
         
-
         if self.transform:
             spec = self.transform(spec)
         
@@ -70,7 +75,7 @@ class MoodyDataset(Dataset):
 def test():
     
 
-    dataset = MoodyDataset(config="/Volumes/Drive/MoodySound/data/metadata.csv", 
+    dataset = MoodyDataset(config="/data/cache/data/metadata.csv", 
                            parent_dir_path="/Volumes/Drive/MoodySound/data")
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
     
