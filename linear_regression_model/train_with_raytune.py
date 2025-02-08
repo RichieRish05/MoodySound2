@@ -10,9 +10,22 @@ import os
 from ray.tune.search.optuna import OptunaSearch  
 import boto3
 
-def upload_model_to_s3(model, bucket_name, model_name):
-    s3 = boto3.client('s3')
-    s3.upload_file(model, bucket_name, model_name)
+def upload_metadata_to_s3(checkpoint_data, bucket_name, file_name):
+    try:
+        # Save checkpoint data to a temporary file
+        torch.save(checkpoint_data, file_name)
+        
+        # Upload to S3
+        s3 = boto3.client('s3')
+        s3.upload_file(file_name, bucket_name, file_name)
+        
+        # Cleanup local file
+        os.remove(file_name)
+        
+        print(f"Successfully uploaded checkpoint to s3://{bucket_name}/{file_name}")
+    except Exception as e:
+        print(f"Error uploading to S3: {str(e)}")
+        raise
 
 
 def load_data(config, batch_size):
@@ -194,7 +207,7 @@ def main():
     scheduler = ASHAScheduler(
         max_t=config['num_epochs'], # Total number of epochs to run
         grace_period=2, # Number of epochs to wait before cutting any models out
-        reduction_factor=1 # Cut half of the models
+        reduction_factor=3 # Cut half of the models
     )
 
     search_alg = OptunaSearch(
@@ -240,13 +253,7 @@ def main():
     
     # Save best model
     best_checkpoint = best_trial.checkpoint.value
-    best_model_metadata = torch.load(os.path.join(best_checkpoint, "checkpoint"))
-    best_model = MoodyConvNet()
-    best_model.load_state_dict(best_model_metadata["model_state_dict"])
-
-
-
-    upload_model_to_s3(best_model, "rishitestbucket01", "best_model.pth")
+    upload_metadata_to_s3(best_checkpoint, "rishitestbucket01", "best_model.pth")
 
 
 
