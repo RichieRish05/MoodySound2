@@ -178,7 +178,7 @@ def train_model(config):
 
     print("Loading data...")
     # Load the data
-    trainloader, _ , val_loader = load_data(config, batch_size)
+    trainloader, _ , val_loader = load_data(config="/mnt/data/shuffled_metadata.csv", batch_size=batch_size)
     print(f"Data loaded. Train batches: {len(trainloader)}, Val batches: {len(val_loader)}")
 
 

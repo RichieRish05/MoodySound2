@@ -35,10 +35,10 @@ class MoodyDataset(Dataset):
         - data_dir/targets/
     """
     
-    def __init__(self, config, transform=None, cache_dir='/cached-data'):
+    def __init__(self, config, transform=None, data_dir='/mnt/data'):
         self.df = pd.read_csv(config)
         self.transform = transform
-        self.cache_dir = cache_dir
+        self.data_dir = data_dir
         
     
     def __len__(self):
@@ -48,9 +48,9 @@ class MoodyDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
         
-        # Use cache directory to load spectrogram and mood vector
-        spec_path = os.path.join(self.cache_dir, 'spectrograms', self.df.iloc[idx]["spectrogram_file"])
-        mood_path = os.path.join(self.cache_dir, 'targets', self.df.iloc[idx]["target_file"])
+        # Use data directory to load spectrogram and mood vector
+        spec_path = os.path.join(self.data_dir, 'spectrograms', self.df.iloc[idx]["spectrogram_file"])
+        mood_path = os.path.join(self.data_dir, 'targets', self.df.iloc[idx]["target_file"])
         
 
         spec = read_spectrogram(spec_path)
@@ -69,8 +69,10 @@ class MoodyDataset(Dataset):
 def test():
     
 
-    dataset = MoodyDataset(config="/data/cache/data/metadata.csv", 
-                           parent_dir_path="/Volumes/Drive/MoodySound/data")
+    dataset = MoodyDataset(
+        config="/mnt/data/shuffled_metadata.csv",
+        data_dir="/mnt/data"
+    )
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
     
     print(next(iter(dataloader)))

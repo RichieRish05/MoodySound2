@@ -45,3 +45,10 @@ aws configure
 aws s3 sync s3://rishitestbucket01/data/ /cached-data
 
 """
+
+
+"""
+sudo mkfs -t ext4 /dev/nvme1n1
+
+
+"""
