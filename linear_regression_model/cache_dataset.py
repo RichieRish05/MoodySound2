@@ -42,13 +42,12 @@ def download_to_EC2_instance_with_retry():
 Create all accessible directories before running these commands
 
 aws configure
-aws s3 sync s3://rishitestbucket01/data/ /cached-data
+aws s3 sync s3://rishitestbucket01/data/ /mnt/data
 
 """
 
 
 """
-sudo mkfs -t ext4 /dev/nvme1n1
-
+sudo mkfs -t ext4 /dev/
 
 """

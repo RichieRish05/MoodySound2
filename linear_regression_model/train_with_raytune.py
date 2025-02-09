@@ -55,19 +55,25 @@ def load_data(config, batch_size):
     trainloader = DataLoader(
         dataset=train_dataset,
         batch_size=batch_size,
-        shuffle=True
+        shuffle=True,
+        num_workers=2,
+        pin_memory=True
     )  
 
     testloader = DataLoader(
         dataset=test_dataset,
         batch_size=batch_size,
-        shuffle=False
+        shuffle=False,
+                num_workers=2,
+        pin_memory=True
     )
 
     val_loader = DataLoader(
         dataset=val_dataset,
         batch_size=batch_size,
-        shuffle=True
+        shuffle=True,
+        num_workers=2,
+        pin_memory=True
     )
 
 
@@ -245,7 +251,8 @@ def main():
             mode="min",
             scheduler=scheduler,
             num_samples=20,
-            search_alg=search_alg
+            search_alg=search_alg,
+            max_concurrent_trials=2
         ),
 
 
