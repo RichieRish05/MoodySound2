@@ -250,9 +250,8 @@ def main():
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=20,
+            num_samples=10,
             search_alg=search_alg,
-            max_concurrent_trials=2
         ),
 
 
