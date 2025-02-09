@@ -36,3 +36,12 @@ def download_to_EC2_instance_with_retry():
             print(f"Error: {e}")
             print(f"Download failed on attempt {try_num+1}. Retrying...")
             time.sleep(10)
+
+
+"""
+Create all accessible directories before running these commands
+
+aws configure
+aws s3 sync s3://rishitestbucket01/data/ /cached-data
+
+"""

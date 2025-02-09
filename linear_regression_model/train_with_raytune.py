@@ -125,6 +125,7 @@ def train_one_epoch(epoch, model, trainloader, optimizer, loss_function, device)
 
 
 def evaluate_model(model, testloader, loss_function, device):
+    print("\nEvaluating model...")
     total_mse = 0.0
     total_samples = 0
     with torch.no_grad():
@@ -146,6 +147,8 @@ def evaluate_model(model, testloader, loss_function, device):
         
         avg_mse = total_mse / total_samples
 
+        print(f"Evaluation complete - Average MSE: {avg_mse}")
+
 
         return avg_mse
         
@@ -157,6 +160,10 @@ def train_model(config):
     This is the training function that will be used by raytune. 
     """
 
+    print("\n=== Starting hyperparameter tuning ===")
+
+    print(f"Training model with config: {config}")
+
     # Get hyperparameters from the config
     learning_rate = config['learning_rate']
     weight_decay = config['weight_decay']
@@ -166,9 +173,13 @@ def train_model(config):
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Device: {device}")
 
+
+    print("Loading data...")
     # Load the data
     trainloader, _ , val_loader = load_data(config, batch_size)
+    print(f"Data loaded. Train batches: {len(trainloader)}, Val batches: {len(val_loader)}")
 
 
     # Initialize the model
@@ -220,7 +231,9 @@ def main():
         mode = "min",
     )
 
+    print("\nInitializing Ray...")
     ray.init()
+    print("Starting tuning...")
 
     tuner = tune.Tuner(
         train_model,
