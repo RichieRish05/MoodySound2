@@ -12,6 +12,7 @@ __pycache__/
 acousticbrainz-highlevel-json-20220623
 dataset/
 *.csv
+test/
 
 # Ignore workspace
 MoodySound2.code-workspace

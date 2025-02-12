@@ -34,7 +34,7 @@ def upload_metadata_to_s3(checkpoint_data, bucket_name, file_name):
 
 
 def load_data(config, batch_size):
-    dataset = MoodyDataset(config=config)
+    dataset = MoodyDataset(config=config, data_dir='/Volumes/Drive/MoodySound/test_data/')
 
     torch.manual_seed(42)
     
@@ -183,8 +183,8 @@ def train_model(config):
 
 
     print("Loading data...")
-    # Load the data
-    trainloader, _ , val_loader = load_data(config="/mnt/data/shuffled_metadata.csv", batch_size=batch_size)
+    # Load the data TESTING
+    trainloader, _ , val_loader = load_data(config="/Volumes/Drive/MoodySound/test_data/shuffled_metadata.csv", batch_size=batch_size)
     print(f"Data loaded. Train batches: {len(trainloader)}, Val batches: {len(val_loader)}")
 
 
@@ -212,8 +212,7 @@ def train_model(config):
                                 loss_function=loss_function, 
                                 device=device)
         
-        
-        tune.report(val_loss=avg_mse)
+        tune.report(metrics={"val_loss": avg_mse})
 
 
 def main():
@@ -221,7 +220,7 @@ def main():
     config = {
         'learning_rate': tune.loguniform(1e-5, 1e-3),
         'weight_decay': tune.loguniform(1e-5, 1e-3),
-        'batch_size': [128,256,512],
+        'batch_size': tune.choice([128, 256, 512]),
         'num_epochs': 32,
         'dropout_rate': tune.uniform(0.1, 0.5),
     }
@@ -245,19 +244,20 @@ def main():
         train_model,
         param_space=config,
         
-
+        # Tune config TESTING
         tune_config = tune.TuneConfig(
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=10,
+            num_samples=2,
             search_alg=search_alg,
         ),
 
 
-
+        # Run config TESTING
         run_config = tune.RunConfig(
-            storage_path = f"s3://{BUCKET_NAME}/ray_results/",
+            #storage_path = f"s3://{BUCKET_NAME}/ray_results/",
+            storage_path = "/Volumes/Drive/MoodySound/test_data/ray_results/",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  # Only keep the best checkpoint
@@ -271,13 +271,13 @@ def main():
     results = tuner.fit()
     
     # Print results
-    best_trial = results.get_best_trial("val_loss", "min")
+    best_trial = results.get_best_result("val_loss", "min")
     print(f"Best trial config: {best_trial.config}")
     print(f"Best trial final validation loss: {best_trial.last_result['val_loss']}")
     
     # Save best model
     best_checkpoint = best_trial.checkpoint.value
-    upload_metadata_to_s3(best_checkpoint, BUCKET_NAME, "best_model.pth")
+    #upload_metadata_to_s3(best_checkpoint, BUCKET_NAME, "best_model.pth")
 
 
 

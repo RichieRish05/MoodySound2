@@ -4,7 +4,8 @@ from dataset import MoodyDataset
 from torchvision import transforms
 from torch.utils.data import DataLoader
 
-
+# IMPLEMENT ZERO MEAN CONVOLUTIONS
+# 
 
 class MoodyConvNet(nn.Module):
   '''

@@ -62,7 +62,7 @@ class MoodyDataset(Dataset):
         return spec, mood
 
 
-
+# THINK ABOUT NORMALIZING THE SPECTROGRAM
 
 
 
@@ -70,8 +70,8 @@ def test():
     
 
     dataset = MoodyDataset(
-        config="/mnt/data/shuffled_metadata.csv",
-        data_dir="/mnt/data"
+        config="/Volumes/Drive/MoodySound/test_data/shuffled_metadata.csv",
+        data_dir="/Volumes/Drive/MoodySound/test_data/"
     )
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
     

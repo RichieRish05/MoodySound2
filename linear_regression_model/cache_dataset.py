@@ -2,40 +2,54 @@ import boto3
 import os
 import time
 from dotenv import load_dotenv
+import boto3
 
 load_dotenv()
 BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
-CACHE_DIR = '/cached-data'
+CACHE_DIR = './test'
 MAX_RETRIES = 3
 
-def download_to_EC2_instance_with_retry():
+def download_to_VASTAI_instance_with_retry():
+    # Use AWS CLI for efficient download
     s3 = boto3.client('s3')
-    
-    print("Starting download process...")
-    
-    # Create cache directory
+
+
+def download_dir(dist='data/', bucket=BUCKET_NAME):
     os.makedirs(CACHE_DIR, exist_ok=True)
-    
-    for try_num in range(MAX_RETRIES):
-        try:
-            # Use AWS CLI for efficient download
-            os.system(f'aws s3 sync s3://{BUCKET_NAME} {CACHE_DIR} --progress')
+    s3 = boto3.client('s3')
+    paginator = s3.get_paginator('list_objects_v2')
+    page_iterator = paginator.paginate(Bucket=bucket, Delimiter='/', Prefix = dist)
 
 
-            # Verify download is complete
-            if os.path.exists(CACHE_DIR) and len(os.listdir(CACHE_DIR)) > 0:
-                print("Download complete!")
-                os.system(f'ls -l {CACHE_DIR}')
-                os.system(f'du -sh {CACHE_DIR}')
-                break
-            else:
-                # If download is not complete, retry
-                raise Exception("Download failed")
+
+    for page in page_iterator:
+        if 'CommonPrefixes' in page:
+            for prefix in page['CommonPrefixes']:
+                download_dir(prefix['Prefix'], bucket)
+                
+        if 'Contents' in page:
+            for file in page['Contents']:
+                 dest_pathname = os.path.join(CACHE_DIR, file['Key'])
+
+                # Create directory if it doesn't exist
+                 os.makedirs(os.path.dirname(dest_pathname), exist_ok=True)
+                
+                # Download the file
+                 print(f"Downloading {file['Key']} to {dest_pathname}")
+                 s3.download_file(
+                     Bucket=bucket,
+                     Key=file['Key'],
+                     Filename=dest_pathname
+                 )
+
+
+
             
-        except Exception as e:
-            print(f"Error: {e}")
-            print(f"Download failed on attempt {try_num+1}. Retrying...")
-            time.sleep(10)
+    
+
+
+
+download_dir()
 
 
 """
