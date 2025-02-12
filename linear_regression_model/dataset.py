@@ -35,7 +35,7 @@ class MoodyDataset(Dataset):
         - data_dir/targets/
     """
     
-    def __init__(self, config, transform=None, data_dir='/mnt/data'):
+    def __init__(self, config, transform=None, data_dir='/mnt/cached_data/data'):
         self.df = pd.read_csv(config)
         self.transform = transform
         self.data_dir = data_dir
@@ -52,14 +52,22 @@ class MoodyDataset(Dataset):
         spec_path = os.path.join(self.data_dir, 'spectrograms', self.df.iloc[idx]["spectrogram_file"])
         mood_path = os.path.join(self.data_dir, 'targets', self.df.iloc[idx]["target_file"])
         
+        
+        try:
+            spec = read_spectrogram(spec_path)
+            mood = read_mood_vector(mood_path)
+                    
+            if self.transform:
+                spec = self.transform(spec)
+            
+            return spec, mood
+        
+        except Exception as e:
+            print(f"Error reading spectrogram or mood vector: {e}")
+            print(f"Spectrogram: {spec_path}")
+            print(f"Mood vector: {mood_path}")
+            return self.__getitem__((idx+1) % len(self))
 
-        spec = read_spectrogram(spec_path)
-        mood = read_mood_vector(mood_path)
-        
-        if self.transform:
-            spec = self.transform(spec)
-        
-        return spec, mood
 
 
 # THINK ABOUT NORMALIZING THE SPECTROGRAM

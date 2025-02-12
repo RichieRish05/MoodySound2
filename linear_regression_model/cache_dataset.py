@@ -3,6 +3,7 @@ import os
 import time
 from dotenv import load_dotenv
 import boto3
+import pandas as pd
 
 load_dotenv()
 BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
@@ -14,9 +15,8 @@ def download_to_VASTAI_instance_with_retry():
     s3 = boto3.client('s3')
 
 
-def download_dir(dist='data/', bucket=BUCKET_NAME):
+def download_dir(s3, dist = 'data/', bucket=BUCKET_NAME):
     os.makedirs(CACHE_DIR, exist_ok=True)
-    s3 = boto3.client('s3')
     paginator = s3.get_paginator('list_objects_v2')
     page_iterator = paginator.paginate(Bucket=bucket, Delimiter='/', Prefix = dist)
 
@@ -25,33 +25,35 @@ def download_dir(dist='data/', bucket=BUCKET_NAME):
     for page in page_iterator:
         if 'CommonPrefixes' in page:
             for prefix in page['CommonPrefixes']:
-                download_dir(prefix['Prefix'], bucket)
+                download_dir(s3,prefix['Prefix'], bucket)
                 
         if 'Contents' in page:
             for file in page['Contents']:
-                 dest_pathname = os.path.join(CACHE_DIR, file['Key'])
+                dest_pathname = os.path.join(CACHE_DIR, file['Key'])
 
                 # Create directory if it doesn't exist
-                 os.makedirs(os.path.dirname(dest_pathname), exist_ok=True)
+                os.makedirs(os.path.dirname(dest_pathname), exist_ok=True)
                 
                 # Download the file
-                 print(f"Downloading {file['Key']} to {dest_pathname}")
-                 s3.download_file(
-                     Bucket=bucket,
-                     Key=file['Key'],
-                     Filename=dest_pathname
-                 )
-
-
-
+                print(f"Downloading {file['Key']} to {dest_pathname}")
+                try:
+                    s3.download_file(
+                        Bucket=bucket,
+                        Key=file['Key'],
+                        Filename=dest_pathname
+                    )
+                except Exception as e:
+                    print(f"Error downloading {file['Key']}: {e}")
             
-    
 
 
 
-download_dir()
+def main():
+    s3 = boto3.client('s3')
+    download_dir(s3)
 
 
+main()
 """
 Create all accessible directories before running these commands
 
