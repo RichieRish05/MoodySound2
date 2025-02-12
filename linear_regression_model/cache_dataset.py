@@ -8,12 +8,6 @@ import pandas as pd
 load_dotenv()
 BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
 CACHE_DIR = './test'
-MAX_RETRIES = 3
-
-def download_to_VASTAI_instance_with_retry():
-    # Use AWS CLI for efficient download
-    s3 = boto3.client('s3')
-
 
 def download_dir(s3, dist = 'data/', bucket=BUCKET_NAME):
     os.makedirs(CACHE_DIR, exist_ok=True)
@@ -25,7 +19,7 @@ def download_dir(s3, dist = 'data/', bucket=BUCKET_NAME):
     for page in page_iterator:
         if 'CommonPrefixes' in page:
             for prefix in page['CommonPrefixes']:
-                download_dir(s3,prefix['Prefix'], bucket)
+                download_dir(s3, prefix['Prefix'], bucket)
                 
         if 'Contents' in page:
             for file in page['Contents']:

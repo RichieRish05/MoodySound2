@@ -35,10 +35,10 @@ class MoodyDataset(Dataset):
         - data_dir/targets/
     """
     
-    def __init__(self, config, transform=None, data_dir='/mnt/cached_data/data'):
-        self.df = pd.read_csv(config)
+    def __init__(self, config, transform=None):
+        self.df = pd.read_csv(config, nrows = 10)
         self.transform = transform
-        self.data_dir = data_dir
+        self.data_dir = os.path.dirname(config)
         
     
     def __len__(self):

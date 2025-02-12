@@ -10,15 +10,28 @@ import os
 from ray.tune.search.optuna import OptunaSearch  
 import boto3
 from dotenv import load_dotenv
+import tempfile
+import ray.cloudpickle as pickle
+from ray.train import Checkpoint
 
 # Load the environment variables
 load_dotenv()
 BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
 
-def upload_metadata_to_s3(checkpoint_data, bucket_name, file_name):
+def upload_metadata_to_s3(checkpoint_path, bucket_name, file_name):
     try:
-        # Save checkpoint data to a temporary file
-        torch.save(checkpoint_data, file_name)
+        # Load the checkpoint data from the Ray Tune checkpoint
+        with open(os.path.join(checkpoint_path, "data.pkl"), "rb") as f:
+            checkpoint_data = pickle.load(f)
+        
+        # Save as .pth file
+        torch.save({
+            'epoch': checkpoint_data['epoch'],
+            'model_state_dict': checkpoint_data['model_state_dict'],
+            'optimizer_state_dict': checkpoint_data['optimizer_state_dict'],
+            'loss': checkpoint_data['loss'],
+            'config': checkpoint_data['config']
+        }, file_name)
         
         # Upload to S3
         s3 = boto3.client('s3')
@@ -34,7 +47,7 @@ def upload_metadata_to_s3(checkpoint_data, bucket_name, file_name):
 
 
 def load_data(config, batch_size):
-    dataset = MoodyDataset(config=config, data_dir='/Volumes/Drive/MoodySound/test_data/')
+    dataset = MoodyDataset(config=config)
 
     torch.manual_seed(42)
     
@@ -184,7 +197,7 @@ def train_model(config):
 
     print("Loading data...")
     # Load the data TESTING
-    trainloader, _ , val_loader = load_data(config="/Volumes/Drive/MoodySound/test_data/shuffled_metadata.csv", batch_size=batch_size)
+    trainloader, _ , val_loader = load_data(config="/Users/rishi/MoodySound2/test/data/shuffled_metadata.csv", batch_size=batch_size)
     print(f"Data loaded. Train batches: {len(trainloader)}, Val batches: {len(val_loader)}")
 
 
@@ -212,7 +225,27 @@ def train_model(config):
                                 loss_function=loss_function, 
                                 device=device)
         
-        tune.report(metrics={"val_loss": avg_mse})
+        # Create checkpoint
+        checkpoint_info = {
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': avg_mse,
+            'config': config
+        }
+
+        with tempfile.TemporaryDirectory() as checkpoint_dir:
+            with open(os.path.join(checkpoint_dir, 'data.pkl'), 'wb') as fp:
+                pickle.dump(checkpoint_info, fp)
+
+            checkpoint = Checkpoint.from_directory(checkpoint_dir)
+
+        
+            # Report metrics to Ray Tune
+            tune.report(
+                metrics={"val_loss": avg_mse},
+                checkpoint=checkpoint
+            )
 
 
 def main():
@@ -221,7 +254,7 @@ def main():
         'learning_rate': tune.loguniform(1e-5, 1e-3),
         'weight_decay': tune.loguniform(1e-5, 1e-3),
         'batch_size': tune.choice([128, 256, 512]),
-        'num_epochs': 32,
+        'num_epochs': 2,
         'dropout_rate': tune.uniform(0.1, 0.5),
     }
 
@@ -257,7 +290,7 @@ def main():
         # Run config TESTING
         run_config = tune.RunConfig(
             #storage_path = f"s3://{BUCKET_NAME}/ray_results/",
-            storage_path = "/Volumes/Drive/MoodySound/test_data/ray_results/",
+            storage_path = "/Users/rishi/MoodySound2/test/ray_results",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  # Only keep the best checkpoint
@@ -273,11 +306,11 @@ def main():
     # Print results
     best_trial = results.get_best_result("val_loss", "min")
     print(f"Best trial config: {best_trial.config}")
-    print(f"Best trial final validation loss: {best_trial.last_result['val_loss']}")
     
-    # Save best model
-    best_checkpoint = best_trial.checkpoint.value
-    #upload_metadata_to_s3(best_checkpoint, BUCKET_NAME, "best_model.pth")
+    # Save the best checkpoint to S3
+    best_checkpoint = best_trial.checkpoint.path
+    print(best_checkpoint)
+    upload_metadata_to_s3(best_checkpoint, BUCKET_NAME, "best_model.pth")
 
 
 
