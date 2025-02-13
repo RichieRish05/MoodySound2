@@ -285,15 +285,28 @@ def main():
 
 
     results = tuner.fit()
-    
-    # Print results
+    save_best_checkpoint_path_in_s3(results)
+   #save_best_checkpoint_in_s3_as_pth(BUCKET_NAME, 'best_checkpoint.txt')
+
+
+def save_best_checkpoint_path_in_s3(results):
     best_trial = results.get_best_result("val_loss", "min")
     print(f"Best trial config: {best_trial.config}")
     
     # Save the best checkpoint to S3
     best_checkpoint = best_trial.checkpoint.path
-    print(best_checkpoint)
-    save_best_checkpoint_in_s3_as_pth(BUCKET_NAME, best_checkpoint)
+    with open('best_checkpoint.txt', 'w') as f:
+        f.write(best_checkpoint)
+
+
+    s3 = boto3.client('s3')
+    s3.upload_file(
+        Bucket=BUCKET_NAME,
+        Key='ray_results/MoodyConvNet/best_checkpoint.txt',
+        Filename='best_checkpoint.txt'
+    )
+    
+    os.remove('best_checkpoint.txt')
 
 
 
