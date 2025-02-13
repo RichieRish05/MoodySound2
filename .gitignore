@@ -7,6 +7,9 @@ myenv/
 __pycache__/
 *.pyc
 
+# Ignore .pth files
+*.pth
+
 
 # Ignore dataset
 acousticbrainz-highlevel-json-20220623
@@ -24,3 +27,6 @@ k_fold_training_process.txt
 
 # Ignore .env file
 .env
+
+# Ignore old training script
+linear_regression_model/train.py
