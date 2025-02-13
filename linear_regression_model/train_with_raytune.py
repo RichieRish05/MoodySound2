@@ -250,7 +250,7 @@ def train_model(config):
             checkpoint = Checkpoint.from_directory(checkpoint_dir)
 
             # Upload to S3 with trial ID in filename
-            upload_metadata_to_s3(checkpoint_dir, BUCKET_NAME, f"ray_results/trial_{trial_id}_epoch_{epoch}.pth")
+            upload_metadata_to_s3(checkpoint_dir, BUCKET_NAME, f"ray_results/trial_{trial_id}/epoch_{epoch}.pth")
             
             # Report metrics to Ray Tune
             tune.report(
@@ -322,7 +322,7 @@ def main():
     # Save the best checkpoint to S3
     best_checkpoint = best_trial.checkpoint.path
     print(best_checkpoint)
-    upload_metadata_to_s3(best_checkpoint, BUCKET_NAME, "best_model.pth")
+    upload_metadata_to_s3(best_checkpoint, BUCKET_NAME, "ray_results/best_model.pth")
 
 
 
