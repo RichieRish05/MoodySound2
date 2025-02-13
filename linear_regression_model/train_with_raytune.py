@@ -344,6 +344,8 @@ def save_best_checkpoint_in_s3_as_pth(bucket_name, key):
         )
 
         save_pkl_as_pth('best_checkpoint.pkl', bucket_name, 'ray_results/best_model.pth')
+
+        os.remove('best_checkpoint.pkl')
     except Exception as e:
         print(f"Error downloading from S3: {e}")
         raise
