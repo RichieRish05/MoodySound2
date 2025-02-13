@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
 
     # MoodySound Dataset
-    config = "content/MoodySound/data/metadata.csv"
+    config = "test/data/shuffled_metadata.csv"
     dataset = MoodyDataset(config=config)
 
 

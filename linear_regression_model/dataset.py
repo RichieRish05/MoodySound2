@@ -36,7 +36,7 @@ class MoodyDataset(Dataset):
     """
     
     def __init__(self, config, transform=None):
-        self.df = pd.read_csv(config, nrows = 10)
+        self.df = pd.read_csv(config)
         self.transform = transform
         self.data_dir = os.path.dirname(config)
         
@@ -78,8 +78,7 @@ def test():
     
 
     dataset = MoodyDataset(
-        config="/Volumes/Drive/MoodySound/test_data/shuffled_metadata.csv",
-        data_dir="/Volumes/Drive/MoodySound/test_data/"
+        config="/Volumes/Drive/MoodySound/test_data/shuffled_metadata.csv"
     )
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
     

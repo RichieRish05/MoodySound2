@@ -77,7 +77,7 @@ def load_data(config, batch_size):
         dataset=test_dataset,
         batch_size=batch_size,
         shuffle=False,
-                num_workers=2,
+        num_workers=2,
         pin_memory=True
     )
 
@@ -179,7 +179,14 @@ def train_model(config):
     This is the training function that will be used by raytune. 
     """
 
-    print("\n=== Starting hyperparameter tuning ===")
+    # Get the trial id
+    trial = ray.train.get_context()
+    trial_id = trial.get_trial_id()
+    
+    print(f"Trial ID: {trial_id}")
+
+
+    print(f"\n=== Starting hyperparameter tuning for {trial_id} ===")
 
     print(f"Training model with config: {config}")
 
@@ -189,6 +196,7 @@ def train_model(config):
     batch_size = config['batch_size']
     num_epochs = config['num_epochs']
     dropout_rate = config['dropout_rate']
+    csv_path = config['csv_path']  
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -196,8 +204,8 @@ def train_model(config):
 
 
     print("Loading data...")
-    # Load the data TESTING
-    trainloader, _ , val_loader = load_data(config="/Users/rishi/MoodySound2/test/data/shuffled_metadata.csv", batch_size=batch_size)
+    # Pass csv_path directly instead of nested in another dict
+    trainloader, _ , val_loader = load_data(config=csv_path, batch_size=batch_size)
     print(f"Data loaded. Train batches: {len(trainloader)}, Val batches: {len(val_loader)}")
 
 
@@ -231,7 +239,8 @@ def train_model(config):
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': avg_mse,
-            'config': config
+            'config': config,
+            'trial_id': trial_id  # Include trial_id in checkpoint info
         }
 
         with tempfile.TemporaryDirectory() as checkpoint_dir:
@@ -240,7 +249,9 @@ def train_model(config):
 
             checkpoint = Checkpoint.from_directory(checkpoint_dir)
 
-        
+            # Upload to S3 with trial ID in filename
+            upload_metadata_to_s3(checkpoint_dir, BUCKET_NAME, f"ray_results/trial_{trial_id}_epoch_{epoch}.pth")
+            
             # Report metrics to Ray Tune
             tune.report(
                 metrics={"val_loss": avg_mse},
@@ -256,12 +267,13 @@ def main():
         'batch_size': tune.choice([128, 256, 512]),
         'num_epochs': 2,
         'dropout_rate': tune.uniform(0.1, 0.5),
+        'csv_path': '/Users/rishi/MoodySound2/test/data/shuffled_metadata.csv'  
     }
 
     scheduler = ASHAScheduler(
         max_t=config['num_epochs'], # Total number of epochs to run
         grace_period=2, # Number of epochs to wait before cutting any models out
-        reduction_factor=3 # Cut half of the models
+        reduction_factor=2 # Cut half of the models
     )
 
     search_alg = OptunaSearch(

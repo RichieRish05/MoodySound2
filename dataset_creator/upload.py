@@ -29,8 +29,6 @@ class S3Uploader:
         if 'targets' in relative_path.parts:
             return f'data/targets/{file.name}'
         else:
-            print(str(file))
-            print(file.name)
             return f'data/{file.name}'
 
 

@@ -1,63 +1,84 @@
 import boto3
 import os
-import time
 from dotenv import load_dotenv
-import boto3
-import pandas as pd
+from concurrent.futures import ThreadPoolExecutor
 
-load_dotenv()
-BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
-CACHE_DIR = './test'
-
-def download_dir(s3, dist = 'data/', bucket=BUCKET_NAME):
-    os.makedirs(CACHE_DIR, exist_ok=True)
-    paginator = s3.get_paginator('list_objects_v2')
-    page_iterator = paginator.paginate(Bucket=bucket, Delimiter='/', Prefix = dist)
+# TRY TO IMPLEMENT PARALLEL DOWNLOADING USING THREADS
 
 
 
-    for page in page_iterator:
-        if 'CommonPrefixes' in page:
-            for prefix in page['CommonPrefixes']:
-                download_dir(s3, prefix['Prefix'], bucket)
-                
-        if 'Contents' in page:
-            for file in page['Contents']:
-                dest_pathname = os.path.join(CACHE_DIR, file['Key'])
+class S3Downloader:
 
-                # Create directory if it doesn't exist
-                os.makedirs(os.path.dirname(dest_pathname), exist_ok=True)
-                
-                # Download the file
-                print(f"Downloading {file['Key']} to {dest_pathname}")
-                try:
-                    s3.download_file(
-                        Bucket=bucket,
-                        Key=file['Key'],
-                        Filename=dest_pathname
-                    )
-                except Exception as e:
-                    print(f"Error downloading {file['Key']}: {e}")
-            
+    def __init__(self, bucket, cache_dir):
+        self.bucket = bucket
+        self.cache_dir = cache_dir
+        self.s3_client = boto3.client('s3')
+
+
+
+    def create_cache_dir_locally(self):
+        os.makedirs(self.cache_dir, exist_ok=True)
+
+    
+    def upload_a_single_file(self, file):
+        destination = os.path.join(self.cache_dir, file['Key'])
+        
+        try:
+            self.s3_client.download_file(
+                Bucket = self.bucket,
+                Key = file['Key'],
+                Filename = destination 
+            )
+            print(f"Downloaded {file['Key']} to {destination}")
+        except Exception as e:
+            print(f"Error downloading {file['Key']}: {e}")
+    
+    def parallel_upload(self, page):
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            executor.map(self.upload_a_single_file, page['Contents'])
+
+
+    def download_dir(self, dist = 'data/'):
+        self.create_cache_dir_locally()
+
+        paginator = self.s3_client.get_paginator('list_objects_v2')
+        page_iterator = paginator.paginate(Bucket=self.bucket, Delimiter = '/', Prefix = dist)
+
+
+        for page in page_iterator:
+            if 'CommonPrefixes' in page:
+                for prefix in page['CommonPrefixes']:
+                    self.download_dir(prefix['Prefix'])
+                    
+            if 'Contents' in page and page['Contents']:
+                first_key = page['Contents'][0]['Key']
+                destination_dir = os.path.join(self.cache_dir, os.path.dirname(first_key))
+                os.makedirs(destination_dir, exist_ok=True)
+
+                self.parallel_upload(page)
+                        
+
 
 
 
 def main():
-    s3 = boto3.client('s3')
-    download_dir(s3)
+    load_dotenv()
+    BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+    CACHE_DIR = './test'
+    s3_downloader = S3Downloader(bucket=BUCKET_NAME, cache_dir=CACHE_DIR)
+
+    s3_downloader.download_dir()
 
 
-main()
-"""
-Create all accessible directories before running these commands
-
-aws configure
-aws s3 sync s3://rishitestbucket01/data/ /mnt/data
-
-"""
+if __name__ == '__main__':
+    main()
 
 
-"""
-sudo mkfs -t ext4 /dev/
 
-"""
+
+
+
+
+
+
+
