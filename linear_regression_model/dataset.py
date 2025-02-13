@@ -36,7 +36,7 @@ class MoodyDataset(Dataset):
     """
     
     def __init__(self, config, transform=None):
-        self.df = pd.read_csv(config)
+        self.df = pd.read_csv(config, nrows=20)
         self.transform = transform
         self.data_dir = os.path.dirname(config)
         
