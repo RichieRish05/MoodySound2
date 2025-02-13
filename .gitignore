@@ -30,3 +30,4 @@ k_fold_training_process.txt
 
 # Ignore old training script
 linear_regression_model/train.py
+*.pkl
