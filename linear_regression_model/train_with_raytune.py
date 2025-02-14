@@ -14,14 +14,11 @@ import tempfile
 import ray.cloudpickle as pickle
 from ray.train import Checkpoint
 
-# Load the environment variables
-load_dotenv()
-BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
 
 
 
-def load_data(config, batch_size):
-    dataset = MoodyDataset(config=config)
+def load_data(csv_path, batch_size):
+    dataset = MoodyDataset(config=csv_path)
 
     torch.manual_seed(42)
     
@@ -101,7 +98,7 @@ def train_one_epoch(epoch, model, trainloader, optimizer, loss_function, device)
         # Perform optimization
         optimizer.step()
 
-        # Print statistics
+        # Print statistics every 500 batches
         current_loss += loss.item()
         if index % 500 == 499:
             print(f'Epoch {epoch+1} - Loss after mini-batch {index+1}: {current_loss/500}')
@@ -109,7 +106,7 @@ def train_one_epoch(epoch, model, trainloader, optimizer, loss_function, device)
 
             # Free up memory
             torch.cuda.empty_cache()  
-            del outputs, spectrograms, targets, loss
+            del outputs, spectrograms, targets
     
 
 
@@ -145,7 +142,7 @@ def evaluate_model(model, testloader, loss_function, device):
 
         return avg_mse
         
-        
+
 
 
 def train_model(config):
@@ -157,7 +154,6 @@ def train_model(config):
     trial = ray.train.get_context()
     trial_id = trial.get_trial_id()
     
-    print(f"Trial ID: {trial_id}")
 
 
     print(f"\n=== Starting hyperparameter tuning for {trial_id} ===")
@@ -173,13 +169,14 @@ def train_model(config):
     csv_path = config['csv_path']  
 
 
+    # Initialize the device as cpu or gpu
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Device: {device}")
 
 
+    # Load the data in separate train and val loaders
     print("Loading data...")
-    # Pass csv_path directly instead of nested in another dict
-    trainloader, _ , val_loader = load_data(config=csv_path, batch_size=batch_size)
+    trainloader, _ , val_loader = load_data(csv_path=csv_path, batch_size=batch_size)
     print(f"Data loaded. Train batches: {len(trainloader)}, Val batches: {len(val_loader)}")
 
 
@@ -214,15 +211,16 @@ def train_model(config):
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': avg_mse,
             'config': config,
-            'trial_id': trial_id  # Include trial_id in checkpoint info
+            'trial_id': trial_id  
         }
 
+        # Create checkpoint object in a temporary directory and report metrics to Ray Tune
         with tempfile.TemporaryDirectory() as checkpoint_dir:
             with open(os.path.join(checkpoint_dir, 'data.pkl'), 'wb') as fp:
                 pickle.dump(checkpoint_info, fp)
 
             checkpoint = Checkpoint.from_directory(checkpoint_dir)
-            
+
             # Report metrics to Ray Tune
             tune.report(
                 metrics={"val_loss": avg_mse},
@@ -286,102 +284,57 @@ def main():
 
     results = tuner.fit()
     save_best_checkpoint_path_in_s3(results)
-   #save_best_checkpoint_in_s3_as_pth(BUCKET_NAME, 'best_checkpoint.txt')
 
 
 def save_best_checkpoint_path_in_s3(results):
     best_trial = results.get_best_result("val_loss", "min")
     print(f"Best trial config: {best_trial.config}")
     
-    # Save the best checkpoint to S3
+
     best_checkpoint = best_trial.checkpoint.path
     with open('best_checkpoint.txt', 'w') as f:
         f.write(best_checkpoint)
 
 
     s3 = boto3.client('s3')
-    s3.upload_file(
-        Bucket=BUCKET_NAME,
-        Key='ray_results/MoodyConvNet/best_checkpoint.txt',
-        Filename='best_checkpoint.txt'
-    )
-    
-    os.remove('best_checkpoint.txt')
 
-
-
-
-def save_pkl_as_pth(pkl_path, bucket_name, key):
-    with open(pkl_path, "rb") as f:
-        checkpoint_data = pickle.load(f)
-        
-    # Create temporary file to save the checkpoint as a pth file
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
     try:
-        # Save as .pth file
-        torch.save({
-            'epoch': checkpoint_data['epoch'],
-            'model_state_dict': checkpoint_data['model_state_dict'],
-            'optimizer_state_dict': checkpoint_data['optimizer_state_dict'],
-            'loss': checkpoint_data['loss'],
-            'config': checkpoint_data['config']
-        }, temp_file.name)
-            
-        # Close the file before uploading
-        temp_file.close()
-            
-        # Upload to S3
-        s3 = boto3.client('s3')
+        # Save the best checkpoint to S3
         s3.upload_file(
-            Bucket=bucket_name,
-            Key=key,
-            Filename=temp_file.name
+            Bucket=BUCKET_NAME,
+            Key='ray_results/MoodyConvNet/best_checkpoint.txt',
+            Filename='best_checkpoint.txt'
         )
-    finally:
-        # Clean up the temporary file
-        os.unlink(temp_file.name)
-        
-        print(f"Successfully uploaded checkpoint to s3://{bucket_name}/{key}")
-
-
-def save_best_checkpoint_in_s3_as_pth(bucket_name, key):
-    s3 = boto3.client('s3')
-
-    key = key[len(bucket_name) + 1:]
-
-    try:
-        s3.download_file(
-            Bucket=bucket_name,
-            Key=key + "/data.pkl",
-            Filename='best_checkpoint.pkl'
-        )
-
-        save_pkl_as_pth('best_checkpoint.pkl', bucket_name, 'ray_results/best_model.pth')
-
-        os.remove('best_checkpoint.pkl')
+        print(f"Best checkpoint uploaded to S3: {BUCKET_NAME}/ray_results/MoodyConvNet/best_checkpoint.txt")
     except Exception as e:
-        print(f"Error downloading from S3: {e}")
-        raise
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        print(f"Error uploading best checkpoint to S3: {e}")
+    finally:
+        os.remove('best_checkpoint.txt')
 
 
 
 if __name__ == "__main__":
+    # Load the environment variables
+    load_dotenv()
+    BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+
+
+    # Run the main function
     main()
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
