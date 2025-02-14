@@ -2,8 +2,7 @@ import boto3
 import os
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor
-
-# TRY TO IMPLEMENT PARALLEL DOWNLOADING USING THREADS
+load_dotenv()
 
 
 
@@ -34,7 +33,7 @@ class S3Downloader:
             print(f"Error downloading {file['Key']}: {e}")
     
     def parallel_upload(self, page):
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor(max_workers=20) as executor:
             executor.map(self.upload_a_single_file, page['Contents'])
 
 
@@ -62,11 +61,9 @@ class S3Downloader:
 
 
 def main():
-    load_dotenv()
     BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
-    CACHE_DIR = './test'
+    CACHE_DIR = '/workspace'
     s3_downloader = S3Downloader(bucket=BUCKET_NAME, cache_dir=CACHE_DIR)
-
     s3_downloader.download_dir()
 
 

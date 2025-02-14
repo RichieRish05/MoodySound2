@@ -234,7 +234,7 @@ def main():
         'learning_rate': tune.loguniform(1e-5, 1e-3),
         'weight_decay': tune.loguniform(1e-5, 1e-3),
         'batch_size': tune.choice([128, 256, 512]),
-        'num_epochs': 2,
+        'num_epochs': 32,
         'dropout_rate': tune.uniform(0.1, 0.5),
         'csv_path': '/Users/rishi/MoodySound2/test/data/shuffled_metadata.csv'  
     }
@@ -258,20 +258,19 @@ def main():
         train_model,
         param_space=config,
         
-        # Tune config TESTING
+        # Tune config 
         tune_config = tune.TuneConfig(
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=2,
+            num_samples=5,
             search_alg=search_alg,
         ),
 
 
-        # Run config TESTING
+        # Run config
         run_config = tune.RunConfig(
             storage_path = f"s3://{BUCKET_NAME}/ray_results/",
-            #storage_path = "/Users/rishi/MoodySound2/test/ray_results",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  # Only keep the best checkpoint
