@@ -40,7 +40,7 @@ def load_data(csv_path, batch_size):
         dataset=train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=2,
+        num_workers=8,
         pin_memory=True
     )  
 
@@ -48,7 +48,7 @@ def load_data(csv_path, batch_size):
         dataset=test_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=2,
+        num_workers=8,
         pin_memory=True
     )
 
@@ -56,7 +56,7 @@ def load_data(csv_path, batch_size):
         dataset=val_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=2,
+        num_workers=8,
         pin_memory=True
     )
 
