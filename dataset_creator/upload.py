@@ -10,7 +10,7 @@ class S3Uploader:
         self.data_path = Path(data_path)
         self.s3client = boto3.client('s3')
         self.bucket_name = bucket_name
-        self.files_to_upload = self.get_files_to_upload()
+
 
     def validate_file(self, file_name):
         path = Path(file_name)
@@ -32,20 +32,13 @@ class S3Uploader:
             return f'data/{file.name}'
 
 
-    def get_files_to_upload(self):
-        files_to_upload = []
+    def upload_file_to_s3(self, file):
+        if not file.is_file() or not self.validate_file(file):
+            return False
+
+        local_path = str(file)
+        s3_key = self.create_s3_key(file)
         
-        
-        for file in self.data_path.rglob('*'):
-            if file.is_file() and self.validate_file(file):
-                local_path = str(file)
-                s3_key = self.create_s3_key(file)
-                files_to_upload.append((local_path, s3_key))
-            
-        return files_to_upload
-    
-    def upload_file_to_s3(self, upload_info):
-        local_path, s3_key = upload_info
         try:
             self.s3client.upload_file(
                 Bucket=self.bucket_name,
@@ -62,15 +55,11 @@ class S3Uploader:
     
     def upload_directory_to_s3(self):
         
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            results = executor.map(self.upload_file_to_s3, self.files_to_upload)
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            results = list(executor.map(self.upload_file_to_s3, self.data_path.rglob('*')))
 
             successful_uploads = sum(1 for result in results if result)
-            total_files = len(self.files_to_upload)
-            failed_uploads = total_files - successful_uploads
             print(f'Uploaded {successful_uploads} files')
-            print(f'Failed to upload {failed_uploads} files')
-            print(f'Total files: {total_files}')
 
 
 def test_upload(bucket_name, file_name):
@@ -96,9 +85,7 @@ def test_upload(bucket_name, file_name):
 if __name__ == '__main__':
     load_dotenv()
     bucket_name = os.getenv('S3_BUCKET_NAME')
-    data_path = '/Volumes/Drive/MoodySound/test_data'
-    # s3_uploader = S3Uploader(data_path, bucket_name)
-    # s3_uploader.upload_directory_to_s3()
-
-    # file_name = 'Mouthtrap_30s_matrix.npy'
-    # test_upload(bucket_name, file_name)
+    data_path = '/Volumes/Drive/MoodySound/data'
+    s3_uploader = S3Uploader(data_path, bucket_name)
+    print(f"Uploading data to {bucket_name}")
+    s3_uploader.upload_directory_to_s3()

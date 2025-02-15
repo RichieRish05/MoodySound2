@@ -273,7 +273,7 @@ def main():
             storage_path = f"s3://{BUCKET_NAME}/ray_results/",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
-                num_to_keep=1,  # Only keep the best checkpoint
+                num_to_keep=5,  # Only keep the best checkpoint
                 checkpoint_score_attribute="val_loss",
                 checkpoint_score_order="min"
             )

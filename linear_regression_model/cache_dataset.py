@@ -19,7 +19,7 @@ class S3Downloader:
         os.makedirs(self.cache_dir, exist_ok=True)
 
     
-    def upload_a_single_file(self, file):
+    def download_a_single_file(self, file):
         destination = os.path.join(self.cache_dir, file['Key'])
         
         try:
@@ -32,7 +32,7 @@ class S3Downloader:
         except Exception as e:
             print(f"Error downloading {file['Key']}: {e}")
     
-    def parallel_upload(self, page):
+    def parallel_download(self, page):
         with ThreadPoolExecutor(max_workers=20) as executor:
             executor.map(self.upload_a_single_file, page['Contents'])
 
@@ -54,7 +54,7 @@ class S3Downloader:
                 destination_dir = os.path.join(self.cache_dir, os.path.dirname(first_key))
                 os.makedirs(destination_dir, exist_ok=True)
 
-                self.parallel_upload(page)
+                self.parallel_download(page)
                         
 
 
