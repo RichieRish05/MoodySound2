@@ -263,7 +263,7 @@ def main():
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=5,
+            num_samples=20,
             search_alg=search_alg,
         ),
 
