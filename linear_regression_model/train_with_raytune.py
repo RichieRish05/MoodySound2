@@ -254,8 +254,11 @@ def main():
     ray.init()
     print("Starting tuning...")
 
+    # Specify GPU resources
+    trainable_with_gpu = tune.with_resources(train_model, {"gpu": 1})
+
     tuner = tune.Tuner(
-        train_model,
+        trainable_with_gpu,  # Use the GPU-enabled trainable here instead of train_model
         param_space=config,
         
         # Tune config 
@@ -263,8 +266,9 @@ def main():
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=20,
+            num_samples=10,
             search_alg=search_alg,
+            max_concurrent_trials=4,
         ),
 
 
