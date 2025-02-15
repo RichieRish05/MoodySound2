@@ -236,7 +236,7 @@ def main():
         'batch_size': tune.choice([128, 256, 512]),
         'num_epochs': 32,
         'dropout_rate': tune.uniform(0.1, 0.5),
-        'csv_path': '/workspace/data/shuffled_metadata.csv'  
+        'csv_path': '/data/shuffled_metadata.csv'  
     }
 
     scheduler = ASHAScheduler(
