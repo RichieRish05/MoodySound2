@@ -34,7 +34,7 @@ class S3Downloader:
     
     def parallel_download(self, page):
         with ThreadPoolExecutor(max_workers=20) as executor:
-            executor.map(self.upload_a_single_file, page['Contents'])
+            executor.map(self.download_a_single_file, page['Contents'])
 
 
     def download_dir(self, dist = 'data/'):
