@@ -63,9 +63,6 @@ class MoodyDataset(Dataset):
             return spec, mood
         
         except Exception as e:
-            print(f"Error reading spectrogram or mood vector: {e}")
-            print(f"Spectrogram: {spec_path}")
-            print(f"Mood vector: {mood_path}")
             return self.__getitem__((idx+1) % len(self))
 
 

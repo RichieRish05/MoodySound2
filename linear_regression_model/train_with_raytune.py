@@ -69,14 +69,9 @@ def load_data(csv_path, batch_size):
 
 def train_one_epoch(epoch, model, trainloader, optimizer, loss_function, device):
     model.train()
-
-    # Print epoch
     print(f'Starting epoch {epoch+1}')
-
-    # Set current loss value
     current_loss = 0.0
 
-    # Iterate over the train data loader
     for index, data in enumerate(trainloader, 0):
             
         # Collect the spectrograms and associated mood vectors
@@ -233,7 +228,7 @@ def main():
     config = {
         'learning_rate': tune.loguniform(1e-5, 1e-3),
         'weight_decay': tune.loguniform(1e-5, 1e-3),
-        'batch_size': tune.choice([128, 256, 512]),
+        'batch_size': tune.choice([64, 128]),  # Reduced batch sizes
         'num_epochs': 32,
         'dropout_rate': tune.uniform(0.1, 0.5),
         'csv_path': '/workspace/data/shuffled_metadata.csv'  # Absolute path for Vast.ai
