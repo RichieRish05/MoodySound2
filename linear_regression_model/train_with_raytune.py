@@ -40,24 +40,27 @@ def load_data(csv_path, batch_size):
         dataset=train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=8,
-        pin_memory=True
+        num_workers=2,
+        pin_memory=True,
+        prefetch_factor=2
     )  
 
     testloader = DataLoader(
         dataset=test_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=8,
-        pin_memory=True
+        num_workers=2,
+        pin_memory=True,
+        prefetch_factor=2
     )
 
     val_loader = DataLoader(
         dataset=val_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=8,
-        pin_memory=True
+        num_workers=2,
+        pin_memory=True,
+        prefetch_factor=2
     )
 
 
@@ -144,6 +147,8 @@ def train_model(config):
     """
     This is the training function that will be used by raytune. 
     """
+    # Clear gpu memory
+    torch.cuda.empty_cache()
 
     # Get the trial id
     trial = ray.train.get_context()
@@ -228,7 +233,7 @@ def main():
     config = {
         'learning_rate': tune.loguniform(1e-5, 1e-3),
         'weight_decay': tune.loguniform(1e-5, 1e-3),
-        'batch_size': tune.choice([32, 64, 128, 256]),
+        'batch_size': tune.choice([16, 32, 64]),
         'num_epochs': 32,
         'dropout_rate': tune.uniform(0.1, 0.5),
         'csv_path': '/workspace/data/shuffled_metadata.csv'  # Absolute path for Vast.ai
@@ -246,7 +251,7 @@ def main():
     )
 
     print("\nInitializing Ray...")
-    ray.init()
+    ray.init(num_gpus=4)
     print("Starting tuning...")
 
     # Specify GPU resources
@@ -260,9 +265,9 @@ def main():
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=12,  # Number of total trials
+            num_samples=6,  # Number of total trials
             search_alg=search_alg,
-            max_concurrent_trials=4, 
+            max_concurrent_trials=2, 
         ),
 
 
@@ -271,7 +276,7 @@ def main():
             storage_path = f"s3://{BUCKET_NAME}/ray_results/",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
-                num_to_keep=5,  # Only keep the best checkpoint
+                num_to_keep=1,  
                 checkpoint_score_attribute="val_loss",
                 checkpoint_score_order="min"
             )
