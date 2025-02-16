@@ -250,20 +250,19 @@ def main():
     print("Starting tuning...")
 
     # Specify GPU resources
-    trainable_with_gpu = tune.with_resources(train_model, {"gpu": 1})
+    trainable_with_gpu = tune.with_resources(train_model, {"gpu": 1})  
 
     tuner = tune.Tuner(
-        trainable_with_gpu,  # Use the GPU-enabled trainable here instead of train_model
+        trainable_with_gpu,
         param_space=config,
         
-        # Tune config 
         tune_config = tune.TuneConfig(
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=10,
+            num_samples=20,  # Number of total trials
             search_alg=search_alg,
-            max_concurrent_trials=4,
+            max_concurrent_trials=8,  # Run 8 concurrent trials
         ),
 
 
