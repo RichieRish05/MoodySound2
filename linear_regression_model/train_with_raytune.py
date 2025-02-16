@@ -234,7 +234,7 @@ def main():
         'learning_rate': tune.loguniform(1e-5, 1e-3),
         'weight_decay': tune.loguniform(1e-5, 1e-3),
         'batch_size': tune.choice([16, 32]),
-        'num_epochs': 32,
+        'num_epochs': tune.choice([16, 24, 32]),
         'dropout_rate': tune.uniform(0.1, 0.5),
         'csv_path': '/workspace/data/shuffled_metadata.csv'  # Absolute path for Vast.ai
     }
@@ -265,7 +265,7 @@ def main():
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=6,  # Number of total trials
+            num_samples=8,  # Number of total trials
             search_alg=search_alg,
             max_concurrent_trials=4, 
         ),
