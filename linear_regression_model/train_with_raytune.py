@@ -267,7 +267,7 @@ def main():
             scheduler=scheduler,
             num_samples=6,  # Number of total trials
             search_alg=search_alg,
-            max_concurrent_trials=2, 
+            max_concurrent_trials=4, 
         ),
 
 
