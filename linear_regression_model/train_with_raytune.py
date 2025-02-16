@@ -260,9 +260,9 @@ def main():
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=10,  # Number of total trials
+            num_samples=12,  # Number of total trials
             search_alg=search_alg,
-            max_concurrent_trials=8,  # Run 8 concurrent trials
+            max_concurrent_trials=4, 
         ),
 
 
