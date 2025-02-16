@@ -240,7 +240,7 @@ def main():
     }
 
     scheduler = ASHAScheduler(
-        max_t=config['num_epochs'], # Total number of epochs to run
+        max_t=32, # Total number of epochs a trial can run
         grace_period=2, # Number of epochs to wait before cutting any models out
         reduction_factor=2 # Cut half of the models
     )
