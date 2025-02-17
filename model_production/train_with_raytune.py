@@ -233,16 +233,16 @@ def main():
     config = {
         'learning_rate': tune.loguniform(1e-5, 1e-3),
         'weight_decay': tune.loguniform(1e-5, 1e-3),
-        'batch_size': tune.choice([16, 32]),
+        'batch_size': tune.choice([32, 64, 128]),  # Increased batch sizes for 24GB VRAM
         'num_epochs': tune.choice([16, 24, 32]),
         'dropout_rate': tune.uniform(0.1, 0.5),
         'csv_path': '/workspace/data/shuffled_metadata.csv'  # Absolute path for Vast.ai
     }
 
     scheduler = ASHAScheduler(
-        max_t=32, # Total number of epochs a trial can run
-        grace_period=2, # Number of epochs to wait before cutting any models out
-        reduction_factor=2 # Cut half of the models
+        max_t=32,
+        grace_period=4,  # Increased grace period
+        reduction_factor=3  # Changed to reduce trials more aggressively
     )
 
     search_alg = OptunaSearch(
@@ -251,23 +251,29 @@ def main():
     )
 
     print("\nInitializing Ray...")
-    ray.init(num_gpus=4)
+    ray.init(
+        num_gpus=4,
+        _memory=180 * 1024 * 1024 * 1024,  # 180GB RAM limit
+        _plasma_directory="/tmp"  # Ensure plasma store uses fast SSD
+    )
     print("Starting tuning...")
 
-    # Specify GPU resources
-    trainable_with_gpu = tune.with_resources(train_model, {"gpu": 1})  
+    trainable_with_gpu = tune.with_resources(
+        train_model, 
+        {"gpu": 1, "cpu": 8}  # Allocate 8 CPU cores per trial
+    )
 
     tuner = tune.Tuner(
         trainable_with_gpu,
         param_space=config,
         
-        tune_config = tune.TuneConfig(
-            metric = "val_loss",
+        tune_config=tune.TuneConfig(
+            metric="val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=12,  # Number of total trials
+            num_samples=24,  # Increased number of trials
             search_alg=search_alg,
-            max_concurrent_trials=4, 
+            max_concurrent_trials=4,  # Use all 4 GPUs
         ),
 
 
