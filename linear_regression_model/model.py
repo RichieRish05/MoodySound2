@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
 # IMPLEMENT ZERO MEAN CONVOLUTIONS
-# 
+# IMPLEMENT L2 NORMALIZATION
 
 class MoodyConvNet(nn.Module):
   '''
@@ -54,13 +54,13 @@ class MoodyConvNet(nn.Module):
       nn.Linear(256, 128),
       nn.ReLU(),
       nn.Dropout(self.dropout_rate),
-      
     )
 
     self.output_layer = nn.Linear(128, 8)  # 8 emotion classes
 
   def forward(self, x):
     '''Forward pass'''
+
     features = self.feature_layers(x)
     output = self.output_layer(features)
 

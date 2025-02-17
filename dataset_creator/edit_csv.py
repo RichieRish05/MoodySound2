@@ -3,20 +3,20 @@ import pandas as pd
 import boto3
 import os
 from dotenv import load_dotenv
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import unicodedata
 
-load_dotenv()
-
-s3 = boto3.client('s3')
 
 
-# s3.download_file(
-#     Bucket= os.getenv('S3_BUCKET_NAME'),
-#     Key='data/shuffled_metadata.csv',
-#     Filename='dataset_creator/shuffled_metadata.csv'
-# )
+
+def download_file(bucket_name, key, file_path):
+    s3 = boto3.client('s3')
+
+    s3.download_file(
+        Bucket=bucket_name,
+        Key=key,
+        Filename=file_path
+    )
 
 
 def normalize_filename(filename):
@@ -24,7 +24,7 @@ def normalize_filename(filename):
     return unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode('ASCII')
 
 
-def filter_paths(file):
+def filter_name(file):
     file_name = file['Key']
     if 'spectrograms' in file_name or 'targets' in file_name:
         return normalize_filename(Path(file_name).name)
@@ -34,6 +34,7 @@ def filter_paths(file):
 def get_all_objects_in_bucket(bucket_name, prefix = 'data/'):
     all_objects = set()
 
+    s3 = boto3.client('s3')
     paginator = s3.get_paginator('list_objects_v2')
     page_iterator = paginator.paginate(Bucket = bucket_name, Delimiter = '/', Prefix = prefix)
 
@@ -44,7 +45,7 @@ def get_all_objects_in_bucket(bucket_name, prefix = 'data/'):
         
         if 'Contents' in page and page['Contents']:
             for file in page['Contents']:
-                if name := filter_paths(file):
+                if name := filter_name(file):
                     all_objects.add(name)
     
     return all_objects
@@ -52,29 +53,47 @@ def get_all_objects_in_bucket(bucket_name, prefix = 'data/'):
 
 def get_all_spec_and_targets_from_csv(csv_path):
     df = pd.read_csv(csv_path)
-    # Normalize filenames from CSV using the same normalization function
+    # Normalize filenames from CSV using the normalization function
     spec_files = {normalize_filename(name) for name in df['spectrogram_file']}
     target_files = {normalize_filename(name) for name in df['target_file']}
     return spec_files | target_files
 
-def update_csv(csv_path, missing_files):
+def update_csv(csv_path, missing_files, bucket):
     df = pd.read_csv(csv_path)
 
-    mask = ~(df['spectrogram_file'].apply(normalize_filename).isin(missing_files) | df['target_file'].apply(normalize_filename).isin(missing_files))
+    mask = ~(df['spectrogram_file'].apply(normalize_filename).isin(missing_files) | 
+             df['target_file'].apply(normalize_filename).isin(missing_files))
     df = df[mask]
     df.to_csv(csv_path, index=False)
 
+    s3 = boto3.client('s3')
+
+    s3.upload_file(
+        Bucket = bucket,
+        Key = 'shuffled_metadata.csv',
+        Filename = csv_path
+    )
+
+    return df
+
 
 def main():
-    all_objects = get_all_objects_in_bucket('moody')
-    all_intended_objects = get_all_spec_and_targets_from_csv('dataset_creator/shuffled_metadata.csv')
+    load_dotenv()
+    bucket = os.getenv('S3_BUCKET_NAME')
 
 
-    missing_files = all_intended_objects - all_objects
-    update_csv('dataset_creator/shuffled_metadata.csv', missing_files)
+    uploaded_objects = get_all_objects_in_bucket(bucket)
+    total_objects = get_all_spec_and_targets_from_csv('dataset_creator/shuffled_metadata.csv')
+    missing_objects = total_objects - uploaded_objects
+    print(len(uploaded_objects))
+    print(len(total_objects))
+    print(len(missing_objects))
+    #update_csv('dataset_creator/shuffled_metadata.csv', missing_objects, bucket)
 
-    print(len(missing_files))
+    
 
+    return missing_objects
 
-
-main()
+if __name__ == '__main__':
+    load_dotenv()
+    main()
