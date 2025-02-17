@@ -275,7 +275,7 @@ def main():
 
         # Run config
         run_config = tune.RunConfig(
-            storage_path = f"s3://{BUCKET_NAME}/ray_results(2/16/25)/",
+            storage_path = f"s3://{BUCKET_NAME}/ray_results(2-16-25)/",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  
