@@ -78,21 +78,26 @@ def get_best_checkpoint_path_in_s3(bucket_name, key):
         raise
 
 
-def download_pth_file_locally(bucket_name, key):
+def download_model_pth_file_locally(bucket_name, key, path):
+    '''RUN ON MACHINE WITH GPU'''
     s3 = boto3.client('s3')
+
+    save_best_checkpoint_in_s3_as_pth(bucket_name)
     s3.download_file(
         Bucket=bucket_name,
         Key=key,
-        Filename='best_model.pth'
+        Filename=path
     )
 
 
-def load_pth_file_locally(path):
-    return torch.load(path, map_location='cpu')
 
 
 if __name__ == "__main__":
     load_dotenv()
-    #save_best_checkpoint_in_s3_as_pth(os.getenv('S3_BUCKET_NAME'))
-    #download_pth_file_locally(os.getenv('S3_BUCKET_NAME'), 'ray_results/best_model.pth')
-    print(load_pth_file_locally('best_model.pth')['loss'])
+    bucket = os.getenv('S3_BUCKET_NAME')
+
+    download_model_pth_file_locally(
+        bucket_name=bucket,
+        key='ray_results/best_model.pth',
+        path='model_loader/best_model.pth'
+    )

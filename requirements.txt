@@ -8,3 +8,4 @@ librosa
 boto3
 ray[tune]
 ray[air]
+optuna

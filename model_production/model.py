@@ -1,12 +1,10 @@
 import torch
 from torch import nn
-from dataset import MoodyDataset
 from torchvision import transforms
-from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
 # IMPLEMENT ZERO MEAN CONVOLUTIONS
-# IMPLEMENT L2 NORMALIZATION
+# IMPLEMENTED L2 NORMALIZATION
 
 class MoodyConvNet(nn.Module):
   '''
