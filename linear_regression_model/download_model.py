@@ -1,9 +1,8 @@
 import boto3
-import ray.cloudpickle as pickle
 import torch
 import os
 import tempfile
-
+import ray.cloudpickle as pickle
 
 
 def save_pkl_as_pth(pkl_path, bucket_name, key):
@@ -39,10 +38,9 @@ def save_pkl_as_pth(pkl_path, bucket_name, key):
         print(f"Successfully uploaded checkpoint to s3://{bucket_name}/{key}")
 
 
-def save_best_checkpoint_in_s3_as_pth(bucket_name, key):
+def save_best_checkpoint_in_s3_as_pth(bucket_name):
     s3 = boto3.client('s3')
-
-    key = key[len(bucket_name) + 1:]
+    key = get_best_checkpoint_path_in_s3(bucket_name, 'ray_results/MoodyConvNet/best_checkpoint.txt')
 
     try:
         s3.download_file(
@@ -58,3 +56,24 @@ def save_best_checkpoint_in_s3_as_pth(bucket_name, key):
         print(f"Error downloading from S3: {e}")
         raise
 
+
+def get_best_checkpoint_path_in_s3(bucket_name, key):
+    s3 = boto3.client('s3')
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=True) as temp:
+            s3.download_file(
+                Bucket=bucket_name,
+                Key=key,
+                Filename=temp.name
+            )
+
+            with open(temp.name, 'r') as f:
+                return f.read()[len(bucket_name) + 1:]
+
+    except Exception as e:
+        print(f"Error downloading from S3: {e}")
+        raise
+
+if __name__ == "__main__":
+    save_best_checkpoint_in_s3_as_pth(os.getenv('S3_BUCKET_NAME'))
