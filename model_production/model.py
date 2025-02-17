@@ -62,7 +62,8 @@ class MoodyConvNet(nn.Module):
     features = self.feature_layers(x)
     output = self.output_layer(features)
 
-    normalized_output = F.normalize(output, p=2, dim=1)
+    positive_output = F.relu(output)
+    normalized_output = F.normalize(positive_output, p=2, dim=1)
     return normalized_output
   
  
