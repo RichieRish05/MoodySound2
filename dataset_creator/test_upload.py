@@ -5,67 +5,76 @@ import os
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+import unicodedata
 
 load_dotenv()
 
 s3 = boto3.client('s3')
 
-s3.download_file(
-    Bucket=os.getenv('S3_BUCKET_NAME'),
-    Key='data/shuffled_metadata.csv',
-    Filename='dataset_creator/shuffled_metadata.csv'
-)
 
-def search_bucket_for_missing_file(row):
-    try:
-        s3.head_object(
-            Bucket=os.getenv('S3_BUCKET_NAME'),
-            Key='data/spectrograms/' + row.spectrogram_file
-        )
+# s3.download_file(
+#     Bucket= os.getenv('S3_BUCKET_NAME'),
+#     Key='data/shuffled_metadata.csv',
+#     Filename='dataset_creator/shuffled_metadata.csv'
+# )
 
-        s3.head_object(
-            Bucket=os.getenv('S3_BUCKET_NAME'),
-            Key='data/targets/' + row.target_file
-        )
 
-        print(f"Song found: {row.title}")
-        return None
+def normalize_filename(filename):
+    # Normalize to NFKD form and encode as ASCII to handle special characters
+    return unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode('ASCII')
+
+
+def filter_paths(file):
+    file_name = file['Key']
+    if 'spectrograms' in file_name or 'targets' in file_name:
+        return normalize_filename(Path(file_name).name)
+    return None
+
+
+def get_all_objects_in_bucket(bucket_name, prefix = 'data/'):
+    all_objects = set()
+
+    paginator = s3.get_paginator('list_objects_v2')
+    page_iterator = paginator.paginate(Bucket = bucket_name, Delimiter = '/', Prefix = prefix)
+
+    for page in page_iterator:
+        if 'CommonPrefixes' in page:
+            for prefix in page['CommonPrefixes']:
+                all_objects.update(get_all_objects_in_bucket(bucket_name, prefix = prefix['Prefix']))
+        
+        if 'Contents' in page and page['Contents']:
+            for file in page['Contents']:
+                if name := filter_paths(file):
+                    all_objects.add(name)
     
-    except Exception as e:
-        print(f"Song not found: {row.title}")
-        return row.title
+    return all_objects
 
-def search_for_missing_files(csv_path):
 
+def get_all_spec_and_targets_from_csv(csv_path):
+    df = pd.read_csv(csv_path)
+    # Normalize filenames from CSV using the same normalization function
+    spec_files = {normalize_filename(name) for name in df['spectrogram_file']}
+    target_files = {normalize_filename(name) for name in df['target_file']}
+    return spec_files | target_files
+
+def update_csv(csv_path, missing_files):
     df = pd.read_csv(csv_path)
 
-    with ThreadPoolExecutor(max_workers=20) as executor:
-        results = list(filter(None, executor.map(search_bucket_for_missing_file, df.itertuples())))
-
-    return results
-
-
-
-def save_missing_files(missing_files, output_path):
-    with open(output_path, 'w') as f:
-        for file_name in missing_files:
-            f.write(f"{file_name}\n")
-    
-    print(f"Results saved to {output_path}")
-
+    mask = ~(df['spectrogram_file'].apply(normalize_filename).isin(missing_files) | df['target_file'].apply(normalize_filename).isin(missing_files))
+    df = df[mask]
+    df.to_csv(csv_path, index=False)
 
 
 def main():
-    missing_files = search_for_missing_files('dataset_creator/shuffled_metadata.csv')
-    save_missing_files(missing_files, 'dataset_creator/missing_files.txt')
+    all_objects = get_all_objects_in_bucket(os.getenv('S3_BUCKET_NAME'))
+    all_intended_objects = get_all_spec_and_targets_from_csv('dataset_creator/shuffled_metadata.csv')
+
+
+    missing_files = all_intended_objects - all_objects
+    update_csv('dataset_creator/shuffled_metadata.csv', missing_files)
+
+    print(len(missing_files))
 
 
 
-
-
-
-if __name__ == "__main__":
-    main()
-
-
-
+main()
