@@ -188,7 +188,7 @@ def train_model(config):
                                 lr = learning_rate, 
                                 weight_decay = weight_decay)
     
-    loss_function =  nn.MSELoss()
+    loss_function =  nn.BCELoss()
 
     for epoch in range(num_epochs):
         train_one_epoch(epoch=epoch, 

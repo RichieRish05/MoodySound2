@@ -10,12 +10,12 @@ class MoodyConvNet(nn.Module):
   '''
     Simple Convolutional Neural Network
   '''
-  def __init__(self, dropout_rate=0.3):
+  def __init__(self, dropout_rate=0.15):
     super().__init__()
     self.dropout_rate = dropout_rate
   
     # Convolutional layers
-    self.feature_layers = nn.Sequential(
+    self.layers = nn.Sequential(
       # First convolutional layer
       nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1),
       nn.BatchNorm2d(32), 
@@ -52,18 +52,15 @@ class MoodyConvNet(nn.Module):
       nn.Linear(256, 128),
       nn.ReLU(),
       nn.Dropout(self.dropout_rate),
+
+      nn.Linear(128, 8), # 8 emotion classes
+      nn.Sigmoid()
+
     )
 
-    self.output_layer = nn.Linear(128, 8)  # 8 emotion classes
 
   def forward(self, x):
     '''Forward pass with normalized output vectors'''
-
-    features = self.feature_layers(x)
-    output = self.output_layer(features)
-
-    positive_output = F.relu(output)
-    normalized_output = F.normalize(positive_output, p=2, dim=1)
-    return normalized_output
+    return self.layers(x)
   
  
