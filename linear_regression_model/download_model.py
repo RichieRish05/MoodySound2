@@ -39,6 +39,8 @@ def save_pkl_as_pth(pkl_path, bucket_name, key):
 
 
 def save_best_checkpoint_in_s3_as_pth(bucket_name):
+    '''RUN ON GPU'''
+
     s3 = boto3.client('s3')
     key = get_best_checkpoint_path_in_s3(bucket_name, 'ray_results/MoodyConvNet/best_checkpoint.txt')
 
@@ -75,6 +77,22 @@ def get_best_checkpoint_path_in_s3(bucket_name, key):
         print(f"Error downloading from S3: {e}")
         raise
 
+
+def download_pth_file_locally(bucket_name, key):
+    s3 = boto3.client('s3')
+    s3.download_file(
+        Bucket=bucket_name,
+        Key=key,
+        Filename='best_model.pth'
+    )
+
+
+def load_pth_file_locally(path):
+    return torch.load(path, map_location='cpu')
+
+
 if __name__ == "__main__":
     load_dotenv()
-    save_best_checkpoint_in_s3_as_pth(os.getenv('S3_BUCKET_NAME'))
+    #save_best_checkpoint_in_s3_as_pth(os.getenv('S3_BUCKET_NAME'))
+    #download_pth_file_locally(os.getenv('S3_BUCKET_NAME'), 'ray_results/best_model.pth')
+    print(load_pth_file_locally('best_model.pth')['loss'])
