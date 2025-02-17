@@ -66,7 +66,7 @@ def update_csv(csv_path, missing_files):
 
 
 def main():
-    all_objects = get_all_objects_in_bucket(os.getenv('S3_BUCKET_NAME'))
+    all_objects = get_all_objects_in_bucket('moody')
     all_intended_objects = get_all_spec_and_targets_from_csv('dataset_creator/shuffled_metadata.csv')
 
 

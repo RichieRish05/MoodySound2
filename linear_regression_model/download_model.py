@@ -3,7 +3,7 @@ import torch
 import os
 import tempfile
 import ray.cloudpickle as pickle
-
+from dotenv import load_dotenv
 
 def save_pkl_as_pth(pkl_path, bucket_name, key):
     with open(pkl_path, "rb") as f:
@@ -76,4 +76,5 @@ def get_best_checkpoint_path_in_s3(bucket_name, key):
         raise
 
 if __name__ == "__main__":
-    save_best_checkpoint_in_s3_as_pth('moodysoundbucket')
+    load_dotenv()
+    save_best_checkpoint_in_s3_as_pth(os.getenv('S3_BUCKET_NAME'))
