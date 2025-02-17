@@ -265,7 +265,7 @@ def main():
             metric = "val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=8,  # Number of total trials
+            num_samples=12,  # Number of total trials
             search_alg=search_alg,
             max_concurrent_trials=4, 
         ),
@@ -273,7 +273,7 @@ def main():
 
         # Run config
         run_config = tune.RunConfig(
-            storage_path = f"s3://{BUCKET_NAME}/ray_results/",
+            storage_path = f"s3://{BUCKET_NAME}/ray_results(2/16/25)/",
             name = "MoodyConvNet",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  
@@ -304,10 +304,10 @@ def save_best_checkpoint_path_in_s3(results):
         # Save the best checkpoint to S3
         s3.upload_file(
             Bucket=BUCKET_NAME,
-            Key='ray_results/MoodyConvNet/best_checkpoint.txt',
+            Key='ray_results(2/16/25)/MoodyConvNet/best_checkpoint.txt',
             Filename='best_checkpoint.txt'
         )
-        print(f"Best checkpoint uploaded to S3: {BUCKET_NAME}/ray_results/MoodyConvNet/best_checkpoint.txt")
+        print(f"Best checkpoint uploaded to S3: {BUCKET_NAME}/ray_results(2/16/25)/MoodyConvNet/best_checkpoint.txt")
     except Exception as e:
         print(f"Error uploading best checkpoint to S3: {e}")
     finally:

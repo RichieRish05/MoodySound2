@@ -22,5 +22,12 @@ def model_pass(model, spectrogram):
     with torch.no_grad():
         output = model(spectrogram)
         return output
+    
+
+def main():
+    model = load_model('model_loader/best_model.pth')
 
     
+if __name__ == '__main__':
+    main()
+
