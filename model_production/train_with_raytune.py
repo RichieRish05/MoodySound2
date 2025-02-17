@@ -233,7 +233,7 @@ def main():
     config = {
         'learning_rate': tune.loguniform(1e-5, 1e-3),
         'weight_decay': tune.loguniform(1e-5, 1e-3),
-        'batch_size': tune.choice([32, 64, 128]),  # Increased batch sizes for 24GB VRAM
+        'batch_size': tune.choice([32, 64]), 
         'num_epochs': tune.choice([16, 24, 32]),
         'dropout_rate': tune.uniform(0.1, 0.5),
         'csv_path': '/workspace/data/shuffled_metadata.csv'  # Absolute path for Vast.ai
