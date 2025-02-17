@@ -39,13 +39,7 @@ def build_mood_vector(row):
     
     mood_vector = np.array([mood_vector])
 
-    # Calculate the L2 norm (Euclidean norm) of the vector
-    norm = np.linalg.norm(mood_vector)
-
-    # Normalize mood vector
-    normalized_vector = mood_vector / norm
-    
-    return normalized_vector
+    return mood_vector
 
 
 def build_spectogram_data(row):

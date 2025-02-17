@@ -251,16 +251,12 @@ def main():
     )
 
     print("\nInitializing Ray...")
-    ray.init(
-        num_gpus=4,
-        _memory=180 * 1024 * 1024 * 1024,  # 180GB RAM limit
-        _plasma_directory="/tmp"  # Ensure plasma store uses fast SSD
-    )
+    ray.init(num_gpus=4)
     print("Starting tuning...")
 
     trainable_with_gpu = tune.with_resources(
         train_model, 
-        {"gpu": 1, "cpu": 8}  # Allocate 8 CPU cores per trial
+        {"gpu": 1} 
     )
 
     tuner = tune.Tuner(
@@ -271,7 +267,7 @@ def main():
             metric="val_loss",
             mode="min",
             scheduler=scheduler,
-            num_samples=24,  # Increased number of trials
+            num_samples=8, 
             search_alg=search_alg,
             max_concurrent_trials=4,  # Use all 4 GPUs
         ),
