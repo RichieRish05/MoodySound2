@@ -76,4 +76,4 @@ def get_best_checkpoint_path_in_s3(bucket_name, key):
         raise
 
 if __name__ == "__main__":
-    save_best_checkpoint_in_s3_as_pth(os.getenv('S3_BUCKET_NAME'))
+    save_best_checkpoint_in_s3_as_pth('moodysoundbucket')
