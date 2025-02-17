@@ -16,13 +16,8 @@ def read_mood_vector(mood_vector_path):
     # Load in the mood vector
     mood = np.load(mood_vector_path)
 
-    # Apply min-max normalization
-    mood_min = mood.min()
-    mood_max = mood.max()
-    normalized_mood = (mood - mood_min) / (mood_max - mood_min)
-
     # Convert to torch float tensor
-    return torch.FloatTensor(normalized_mood).squeeze(0)
+    return torch.FloatTensor(mood).squeeze(0)
 
 class MoodyDataset(Dataset):
     """

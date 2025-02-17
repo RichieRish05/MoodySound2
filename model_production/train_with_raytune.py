@@ -269,7 +269,7 @@ def main():
             scheduler=scheduler,
             num_samples=8, 
             search_alg=search_alg,
-            max_concurrent_trials=4,  # Use all 4 GPUs
+            max_concurrent_trials=4,
         ),
 
 
