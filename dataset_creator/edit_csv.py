@@ -85,10 +85,10 @@ def main():
     uploaded_objects = get_all_objects_in_bucket(bucket)
     total_objects = get_all_spec_and_targets_from_csv('dataset_creator/shuffled_metadata.csv')
     missing_objects = total_objects - uploaded_objects
-    print(len(uploaded_objects))
-    print(len(total_objects))
+    print(f'Uploaded: len(uploaded_objects)')
+    print(f'Total: len(total_objects)')
     print(len(missing_objects))
-    #update_csv('dataset_creator/shuffled_metadata.csv', missing_objects, bucket)
+    update_csv('dataset_creator/shuffled_metadata.csv', missing_objects, bucket)
 
     
 

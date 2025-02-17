@@ -39,7 +39,7 @@ def save_pkl_as_pth(pkl_path, bucket_name, key):
 
 
 def save_best_checkpoint_in_s3_as_pth(bucket_name):
-    '''RUN ON GPU'''
+    '''RUN ON MACHINE WITH GPU'''
 
     s3 = boto3.client('s3')
     key = get_best_checkpoint_path_in_s3(bucket_name, 'ray_results/MoodyConvNet/best_checkpoint.txt')

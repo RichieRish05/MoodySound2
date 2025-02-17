@@ -59,7 +59,7 @@ class MoodyConvNet(nn.Module):
     self.output_layer = nn.Linear(128, 8)  # 8 emotion classes
 
   def forward(self, x):
-    '''Forward pass'''
+    '''Forward pass with normalized output vectors'''
 
     features = self.feature_layers(x)
     output = self.output_layer(features)
