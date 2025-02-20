@@ -20,7 +20,7 @@ def read_mood_vector(mood_vector_path):
     mood = mood / np.sum(mood)
 
     # Convert to log space for KL divergence
-    mood = torch.log(mood + 1e-10)
+    mood = np.log(mood + 1e-10)
 
     # Convert to torch float tensor
     return torch.FloatTensor(mood).unsqueeze(0)
@@ -82,6 +82,8 @@ def test():
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
     
     print(next(iter(dataloader)))
+    s, t = next(iter(dataloader))
+
 
 
 if __name__ == "__main__":
