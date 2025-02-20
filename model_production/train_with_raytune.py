@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import tempfile
 import ray.cloudpickle as pickle
 from ray.train import Checkpoint
+from custom_model import CustomModel
 
 
 
@@ -184,21 +185,10 @@ def train_model(config):
 
 
     # Initialize the model
-    model = Resnet18(dropout_rate=dropout_rate).to(device)
+    model = CustomModel(dropout_rate=dropout_rate).to(device)
 
 
-    optimizer = torch.optim.AdamW([
-        {
-            'params': model.get_tunable_layers_parameters(),
-            'lr': tunable_layers_learning_rate, 
-            'weight_decay': tunable_layers_weight_decay
-        },
-        {
-            'params': model.get_classifier_parameters(),
-            'lr': classifier_learning_rate, 
-            'weight_decay': classifier_weight_decay
-        }
-    ])
+    optimizer = torch.optim.AdamW(model.parameters(), lr=classifier_learning_rate, weight_decay=classifier_weight_decay)
     
     
     loss_function =  nn.KLDivLoss(reduction='batchmean')
@@ -244,7 +234,7 @@ def train_model(config):
 def main():
     # Define the configuration space for the hyperparameters
     config = {
-        'classifier_lr': tune.loguniform(1e-4, 1e-2),
+        'classifier_lr': tune.loguniform(1e-5, 1e-2),
         'classifier_weight_decay': tune.loguniform(1e-6, 1e-4),
         'backbone_lr_ratio': tune.loguniform(0.01, 0.3), 
         'batch_size': tune.choice([32, 64, 128]),
@@ -290,7 +280,7 @@ def main():
         # Run config
         run_config = tune.RunConfig(
             storage_path = f"s3://{BUCKET_NAME}/ray_results/",
-            name = "Resnet18",
+            name = "CustomModel",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  
                 checkpoint_score_attribute="val_loss",
@@ -320,10 +310,10 @@ def save_best_checkpoint_path_in_s3(results):
         # Save the best checkpoint to S3
         s3.upload_file(
             Bucket=BUCKET_NAME,
-            Key='ray_results/Resnet18/best_checkpoint.txt',
+            Key='ray_results/CustomModel/best_checkpoint.txt',
             Filename='best_checkpoint.txt'
         )
-        print(f"Best checkpoint uploaded to S3: {BUCKET_NAME}/ray_results/Resnet18/best_checkpoint.txt")
+        print(f"Best checkpoint uploaded to S3: {BUCKET_NAME}/ray_results/CustomModel/best_checkpoint.txt")
     except Exception as e:
         print(f"Error uploading best checkpoint to S3: {e}")
     finally:
