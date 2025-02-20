@@ -2,9 +2,9 @@ import torch
 from torch import nn
 from torchvision import transforms
 import torch.nn.functional as F
+from torchvision import models
 
-# IMPLEMENT ZERO MEAN CONVOLUTIONS
-# IMPLEMENTED L2 NORMALIZATION
+
 
 class MoodyConvNet(nn.Module):
   '''

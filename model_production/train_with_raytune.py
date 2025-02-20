@@ -2,7 +2,7 @@ import torch
 import ray
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from model import MoodyConvNet
+from resnet import Resnet18
 from dataset import MoodyDataset
 from ray import tune
 from ray.tune.schedulers import ASHAScheduler
@@ -161,8 +161,11 @@ def train_model(config):
     print(f"Training model with config: {config}")
 
     # Get hyperparameters from the config
-    learning_rate = config['learning_rate']
-    weight_decay = config['weight_decay']
+    classifier_learning_rate = config['classifier_lr']
+    classifier_weight_decay = config['classifier_weight_decay']
+    backbone_lr_ratio = config['backbone_lr_ratio']
+    tunable_layers_learning_rate = classifier_learning_rate * backbone_lr_ratio
+    tunable_layers_weight_decay = classifier_weight_decay * backbone_lr_ratio
     batch_size = config['batch_size']
     num_epochs = config['num_epochs']
     dropout_rate = config['dropout_rate']
@@ -181,14 +184,24 @@ def train_model(config):
 
 
     # Initialize the model
-    model = MoodyConvNet(dropout_rate=dropout_rate).to(device)
+    model = Resnet18(dropout_rate=dropout_rate).to(device)
 
 
-    optimizer = torch.optim.Adam(model.parameters(), 
-                                lr = learning_rate, 
-                                weight_decay = weight_decay)
+    optimizer = torch.optim.AdamW([
+        {
+            'params': model.get_tunable_layers_parameters(),
+            'lr': tunable_layers_learning_rate, 
+            'weight_decay': tunable_layers_weight_decay
+        },
+        {
+            'params': model.get_classifier_parameters(),
+            'lr': classifier_learning_rate, 
+            'weight_decay': classifier_weight_decay
+        }
+    ])
     
-    loss_function =  nn.BCELoss()
+    
+    loss_function =  nn.BCEWithLogitsLoss()
 
     for epoch in range(num_epochs):
         train_one_epoch(epoch=epoch, 
@@ -231,12 +244,13 @@ def train_model(config):
 def main():
     # Define the configuration space for the hyperparameters
     config = {
-        'learning_rate': tune.loguniform(1e-5, 1e-3),
-        'weight_decay': tune.loguniform(1e-5, 1e-3),
-        'batch_size': tune.choice([32, 64]), 
-        'num_epochs': tune.choice([16, 24, 32]),
+        'classifier_lr': tune.loguniform(1e-4, 1e-2),
+        'classifier_weight_decay': tune.loguniform(1e-6, 1e-4),
+        'backbone_lr_ratio': tune.loguniform(0.01, 0.3), 
+        'batch_size': tune.choice([32, 64, 128]),
+        'num_epochs': tune.choice([48, 64, 96]),
         'dropout_rate': tune.uniform(0.1, 0.5),
-        'csv_path': '/workspace/data/shuffled_metadata.csv'  # Absolute path for Vast.ai
+        'csv_path': '/workspace/data/shuffled_metadata.csv'
     }
 
     scheduler = ASHAScheduler(
@@ -275,8 +289,8 @@ def main():
 
         # Run config
         run_config = tune.RunConfig(
-            storage_path = f"s3://{BUCKET_NAME}/ray_results(2-16-25)/",
-            name = "MoodyConvNet",
+            storage_path = f"s3://{BUCKET_NAME}/ray_results/",
+            name = "Resnet18",
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  
                 checkpoint_score_attribute="val_loss",
@@ -306,10 +320,10 @@ def save_best_checkpoint_path_in_s3(results):
         # Save the best checkpoint to S3
         s3.upload_file(
             Bucket=BUCKET_NAME,
-            Key='ray_results(2/16/25)/MoodyConvNet/best_checkpoint.txt',
+            Key='ray_results/Resnet18/best_checkpoint.txt',
             Filename='best_checkpoint.txt'
         )
-        print(f"Best checkpoint uploaded to S3: {BUCKET_NAME}/ray_results(2/16/25)/MoodyConvNet/best_checkpoint.txt")
+        print(f"Best checkpoint uploaded to S3: {BUCKET_NAME}/ray_results/Resnet18/best_checkpoint.txt")
     except Exception as e:
         print(f"Error uploading best checkpoint to S3: {e}")
     finally:
