@@ -19,9 +19,6 @@ def read_mood_vector(mood_vector_path):
     # Create a valid probability distribution
     mood = mood / np.sum(mood)
 
-    # Convert to log space for KL divergence
-    mood = np.log(mood + 1e-10)
-
     # Convert to torch float tensor
     return torch.FloatTensor(mood).unsqueeze(0)
 
