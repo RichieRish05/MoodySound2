@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 import tempfile
 import ray.cloudpickle as pickle
 from ray.train import Checkpoint
-from custom_model import CustomModel
+from custom_model import MoodyConvNet
 
 
 
@@ -185,7 +185,7 @@ def train_model(config):
 
 
     # Initialize the model
-    model = CustomModel(dropout_rate=dropout_rate).to(device)
+    model = MoodyConvNet(dropout_rate=dropout_rate).to(device)
 
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=classifier_learning_rate, weight_decay=classifier_weight_decay)
