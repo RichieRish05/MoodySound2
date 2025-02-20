@@ -30,6 +30,7 @@ class Resnet18(nn.Module):
         nn.ReLU(),
         nn.Dropout(self.dropout_rate),
         nn.Linear(256, 8),
+        nn.LogSoftmax(dim=1)
     )
 
 
@@ -65,6 +66,7 @@ class Resnet18(nn.Module):
 
   def forward(self, x):
     return self.resnet(x)
+
   
   def get_tunable_layers_parameters(self):
     return chain(
@@ -82,11 +84,18 @@ if __name__ == '__main__':
 
 
 
-    model = Resnet18()
-    
-    optimizer = optim.Adam(model.get_tunable_layers_parameters(), lr=0.001)
 
-    print(model.parameters())
-    print(model.get_tunable_layers_parameters())
-    print(model.get_classifier_parameters())
+    model = Resnet18()
+    model.eval()
+
+    with torch.no_grad():
+        x = torch.randn(1, 1, 128, 1292)
+        output = model(x)
+        print(output)
+
+    # optimizer = optim.Adam(model.get_tunable_layers_parameters(), lr=0.001)
+
+    # print(model.parameters())
+    # print(model.get_tunable_layers_parameters())
+    # print(model.get_classifier_parameters())
 

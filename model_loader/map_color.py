@@ -9,7 +9,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
 # Import the model
-from model_production.model import MoodyConvNet
+from model_production.custom_model import MoodyConvNet
 
 
 def load_model(path):

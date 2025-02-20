@@ -54,8 +54,7 @@ class MoodyConvNet(nn.Module):
       nn.Dropout(self.dropout_rate),
 
       nn.Linear(128, 8), # 8 emotion classes
-      nn.Sigmoid()
-
+      nn.LogSoftmax(dim=1)
     )
 
 

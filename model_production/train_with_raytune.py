@@ -201,7 +201,7 @@ def train_model(config):
     ])
     
     
-    loss_function =  nn.BCEWithLogitsLoss()
+    loss_function =  nn.KLDivLoss(reduction='batchmean')
 
     for epoch in range(num_epochs):
         train_one_epoch(epoch=epoch, 
@@ -248,15 +248,15 @@ def main():
         'classifier_weight_decay': tune.loguniform(1e-6, 1e-4),
         'backbone_lr_ratio': tune.loguniform(0.01, 0.3), 
         'batch_size': tune.choice([32, 64, 128]),
-        'num_epochs': tune.choice([48, 64, 96]),
+        'num_epochs': tune.choice([16, 24, 32]),
         'dropout_rate': tune.uniform(0.1, 0.5),
         'csv_path': '/workspace/data/shuffled_metadata.csv'
     }
 
     scheduler = ASHAScheduler(
         max_t=32,
-        grace_period=4,  # Increased grace period
-        reduction_factor=3  # Changed to reduce trials more aggressively
+        grace_period=4,
+        reduction_factor=3
     )
 
     search_alg = OptunaSearch(
