@@ -29,8 +29,7 @@ class Resnet18(nn.Module):
         nn.BatchNorm1d(256), 
         nn.ReLU(),
         nn.Dropout(self.dropout_rate),
-        nn.Linear(256, 8),
-        nn.LogSoftmax(dim=1)
+        nn.Linear(256, 8)
     )
 
 
@@ -65,7 +64,8 @@ class Resnet18(nn.Module):
         param.requires_grad = True
 
   def forward(self, x):
-    return self.resnet(x)
+    x = self.resnet(x)
+    return F.normalize(x)
 
   
   def get_tunable_layers_parameters(self):

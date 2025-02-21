@@ -30,8 +30,6 @@ def get_spectrogram_data(audio_url, sr=22050, duration=30):
 
         return varied_spectograms
     
-    # MAKE A FAILSAFE WHEN NO SPECTROGRAMS ARE RETURNED
-
 
 
 def slice_spectogram_in_intervals(y, sr=22050, min_duration=10, max_duration=30, step=10):

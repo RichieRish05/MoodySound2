@@ -191,7 +191,7 @@ def train_model(config):
     optimizer = torch.optim.AdamW(model.parameters(), lr=classifier_learning_rate, weight_decay=classifier_weight_decay)
     
     
-    loss_function =  nn.KLDivLoss(reduction='batchmean')
+    loss_function =  nn.MSELoss()
 
     for epoch in range(num_epochs):
         train_one_epoch(epoch=epoch, 
@@ -280,7 +280,7 @@ def main():
         # Run config
         run_config = tune.RunConfig(
             storage_path = f"s3://{BUCKET_NAME}/ray_results/",
-            name = "CustomModel",
+            name = EXPERIMENT_NAME,
             checkpoint_config=tune.CheckpointConfig(
                 num_to_keep=1,  
                 checkpoint_score_attribute="val_loss",
@@ -310,10 +310,10 @@ def save_best_checkpoint_path_in_s3(results):
         # Save the best checkpoint to S3
         s3.upload_file(
             Bucket=BUCKET_NAME,
-            Key='ray_results/CustomModel/best_checkpoint.txt',
+            Key=f'ray_results/{EXPERIMENT_NAME}/best_checkpoint.txt',
             Filename='best_checkpoint.txt'
         )
-        print(f"Best checkpoint uploaded to S3: {BUCKET_NAME}/ray_results/CustomModel/best_checkpoint.txt")
+        print(f"Best checkpoint uploaded to S3: {BUCKET_NAME}/ray_results/{EXPERIMENT_NAME}/best_checkpoint.txt")
     except Exception as e:
         print(f"Error uploading best checkpoint to S3: {e}")
     finally:
@@ -325,6 +325,7 @@ if __name__ == "__main__":
     # Load the environment variables
     load_dotenv()
     BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+    EXPERIMENT_NAME = 'NormalizedMoodyConvNet'
 
 
     # Run the main function
