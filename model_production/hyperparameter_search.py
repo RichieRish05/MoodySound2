@@ -237,7 +237,7 @@ def main():
         'classifier_lr': tune.loguniform(1e-5, 1e-2),
         'classifier_weight_decay': tune.loguniform(1e-6, 1e-4),
         'backbone_lr_ratio': tune.loguniform(0.01, 0.3), 
-        'batch_size': tune.choice([32, 64, 128]),
+        'batch_size': tune.choice([32, 64]),
         'num_epochs': tune.choice([16, 24, 32]),
         'dropout_rate': tune.uniform(0.1, 0.5),
         'csv_path': '/workspace/data/shuffled_metadata.csv'

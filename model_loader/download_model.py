@@ -42,7 +42,7 @@ def save_best_checkpoint_in_s3_as_pth(bucket_name):
     '''RUN ON MACHINE WITH GPU'''
 
     s3 = boto3.client('s3')
-    key = get_best_checkpoint_path_in_s3(bucket_name, 'ray_results/MoodyConvNet/best_checkpoint.txt')
+    key = get_best_checkpoint_path_in_s3(bucket_name, 'ray_results/NormalizedMoodyConvNet/best_checkpoint.txt')
 
     try:
         s3.download_file(
@@ -96,8 +96,9 @@ if __name__ == "__main__":
     load_dotenv()
     bucket = os.getenv('S3_BUCKET_NAME')
 
-    download_model_pth_file_locally(
-        bucket_name=bucket,
-        key='ray_results/best_model.pth',
-        path='model_loader/best_model.pth'
-    )
+    save_best_checkpoint_in_s3_as_pth(bucket)
+    # download_model_pth_file_locally(
+    #     bucket_name=bucket,
+    #     key='ray_results/NormalizedMoodyConvNet/best_model.pth',
+    #     path='model_loader/best_model.pth'
+    # )
