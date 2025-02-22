@@ -21,7 +21,7 @@ def read_mood_vector(mood_vector_path):
     mood = mood / norm
 
     # Convert to torch float tensor
-    return torch.FloatTensor(mood).unsqueeze(0)
+    return torch.FloatTensor(mood).squeeze()
 
 class MoodyDataset(Dataset):
     """
