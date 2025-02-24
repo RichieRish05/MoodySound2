@@ -78,9 +78,20 @@ class ModelDownloader():
             print(f"Successfully uploaded checkpoint to s3://{self.bucket_name}/{self.experiment_path + '/best_model.pth'}")
     
 
+    def download_model_pth_file_locally(self):
+        self.s3.download_file(
+            Bucket=self.bucket_name,
+            Key=self.experiment_path + '/best_model.pth',
+            Filename='model_loader/best_model_weights.pth'
+        )
+
+        print(f"Successfully downloaded checkpoint from s3://{self.bucket_name}/{self.experiment_path+'/best_model.pth'} to model_loader/best_model_weights.pth")
+    
+
 
 if __name__ == "__main__":
     load_dotenv()
     bucket = os.getenv('S3_BUCKET_NAME')
     model_downloader = ModelDownloader(bucket, 'ray_results/NormalizedMoodyConvNet')
-    model_downloader.save_model_as_pth_in_s3()
+    #model_downloader.save_model_as_pth_in_s3()
+    model_downloader.download_model_pth_file_locally()

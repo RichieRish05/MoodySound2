@@ -62,29 +62,3 @@ class MoodyConvNet(nn.Module):
     x = self.layers(x)
     return F.normalize(x, p=2, dim=1)
   
-
-
-if __name__ == '__main__':
-  import numpy as np
-  model = MoodyConvNet()
-
-  with torch.no_grad():
-    model.eval()
-    s  = np.load('/Users/rishi/MoodySound2/test/data/spectrograms/A_Far_Cry_20s_matrix.npy')
-    s = torch.FloatTensor(s).unsqueeze(0).unsqueeze(0)
-
-
-    t = np.load('/Users/rishi/MoodySound2/test/data/targets/A_Far_Cry_20s_target.npy')
-    print(t)
-    norm = np.linalg.norm(t)
-    t = t / norm
-    print(t)
-
-    t = torch.FloatTensor(t).unsqueeze(0).unsqueeze(0)
-    print(t)
-
-    print(torch.norm(t))
-    output = model(s)
-
-    print(output)
-    print(torch.norm(output))
