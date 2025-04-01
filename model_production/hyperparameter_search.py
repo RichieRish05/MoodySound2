@@ -325,7 +325,7 @@ if __name__ == "__main__":
     # Load the environment variables
     load_dotenv()
     BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
-    EXPERIMENT_NAME = 'NormalizedMoodyConvNet'
+    EXPERIMENT_NAME = 'UserDataMoodyConvNet'
 
 
     # Run the main function
