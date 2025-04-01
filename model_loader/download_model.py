@@ -92,6 +92,6 @@ class ModelDownloader():
 if __name__ == "__main__":
     load_dotenv()
     bucket = os.getenv('S3_BUCKET_NAME')
-    model_downloader = ModelDownloader(bucket, 'ray_results/NormalizedMoodyConvNet')
-    #model_downloader.save_model_as_pth_in_s3()
-    model_downloader.download_model_pth_file_locally()
+    model_downloader = ModelDownloader(bucket, 'ray_results/UserDataMoodyConvNet/')
+    model_downloader.save_model_as_pth_in_s3()
+    #model_downloader.download_model_pth_file_locally()
